@@ -1,4 +1,11 @@
 #!/bin/bash
+# timer-v8.3.sh
+#   - consolidating if statements in fMAIN to eliminate the need for SKIP_BIT
+#
+#
+#
+#
+#
 
 USER_ARG=${1}
 
@@ -118,7 +125,7 @@ fCATEGORY_SELECT() {
 			echo " Error, unknown selection, Please select 1 - 14"
 			sleep 2
 			
-			SKIP_BIT=1 # Skips the if statement at the end of the loop where the time markers are told to switch places
+			## JH SKIP_BIT=1 # Skips the if statement at the end of the loop where the time markers are told to switch places
 			;;
 	esac
 }
@@ -146,7 +153,6 @@ fTIME_CALC() {
 	TIME_MARKER[${TM_SWITCH_b}]=${NOW_NOW} # TM_SWITCH_b will start as 1 and become 0 at the end of each iteration of MAIN, unless skipped
 	export TIME_DIFF=$((TIME_MARKER[${TM_SWITCH_b}] - TIME_MARKER[${TM_SWITCH_a}])) # _a will always be the earliest time, _b the most recent
 	CALC_TIME_OUT=$((CALC_TIME_IN + TIME_DIFF))
-    ## JH echo ${CALC_TIME_OUT}
 }
 
 fCURRENT_TIMES() {
@@ -177,7 +183,7 @@ fCURRENT_TIMES() {
 	HUMAN_TIME_IN=${HOLD_TIME_IN} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
 	HUMAN_TIME_OUT=${HOLD_TIME_OUT} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
 	
-	SKIP_BIT=1 # Skips the if statement at the end of the loop where the time markers are told to switch places
+	## JH SKIP_BIT=1 # Skips the if statement at the end of the loop where the time markers are told to switch places
 }
 
 fSUMMARY_AND_QUIT() {
@@ -187,7 +193,6 @@ fSUMMARY_AND_QUIT() {
 	# adds the final time to Administration time
 	echo -n " "${TIME_STAMP} >> Administration.out
     
-	## JH CALC_TIME_IN=${CATEGORY_TIME[1]}; fTIME_CALC
 	fTIME_CALC ${CATEGORY_TIME[1]}
     
 	CATEGORY_TIME[1]=${CALC_TIME_OUT}
@@ -243,7 +248,7 @@ fMAIN() {
     #### MAIN PROGRAM ####
     while [ "${SELECTION}" != "14" ]; do
         
-        SKIP_BIT=0 # resets the skip bit to 0
+        ## JH SKIP_BIT=0 # resets the skip bit to 0
         
         fMENU
         
@@ -263,16 +268,25 @@ fMAIN() {
             echo
             echo " "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
             sleep 5
+        
+        # allows the array designations that is holding the time markers to switch places
+            if [ ${TM_SWITCH_a} -eq 0 ]; then
+                TM_SWITCH_a=1
+                TM_SWITCH_b=0
+            else
+                TM_SWITCH_a=0
+                TM_SWITCH_b=1
+            fi
         fi
     
-        # allows the array designations that is holding the time markers to switch places
-        if [ ${SKIP_BIT} -ne 1 ] && [ ${TM_SWITCH_a} -eq 0 ]; then
-            TM_SWITCH_a=1
-            TM_SWITCH_b=0
-        elif [ ${SKIP_BIT} -ne 1 ]; then
-            TM_SWITCH_a=0
-            TM_SWITCH_b=1
-        fi
+## JH        # allows the array designations that is holding the time markers to switch places
+## JH        if [ ${SKIP_BIT} -ne 1 ] && [ ${TM_SWITCH_a} -eq 0 ]; then
+## JH            TM_SWITCH_a=1
+## JH            TM_SWITCH_b=0
+## JH        elif [ ${SKIP_BIT} -ne 1 ]; then
+## JH            TM_SWITCH_a=0
+## JH            TM_SWITCH_b=1
+## JH        fi
     done
 }
 
