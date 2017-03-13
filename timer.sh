@@ -1,9 +1,9 @@
 #!/bin/bash
 # timer-v8.3.sh
-#   - consolidating if statements in fMAIN to eliminate the need for SKIP_BIT
-#
-#
-#
+#   - consolidated if statements in fMAIN to eliminate the need for SKIP_BIT
+# 
+# timer-v8.4.sh
+#   - modified the usage of fHUMAN_READABLE_TIME to take arguments when called
 #
 #
 
@@ -124,8 +124,6 @@ fCATEGORY_SELECT() {
 			echo
 			echo " Error, unknown selection, Please select 1 - 14"
 			sleep 2
-			
-			## JH SKIP_BIT=1 # Skips the if statement at the end of the loop where the time markers are told to switch places
 			;;
 	esac
 }
@@ -133,8 +131,10 @@ fCATEGORY_SELECT() {
 fHUMAN_READABLE_TIME() { 
 	# converts time in seconds back to hours minutes seconds
 	# Input is HUMAN_TIME_IN - assignes argument HUMAN_TIME_OUT
-	# usage: HUMAN_TIME_IN=<input function/argument>; fHUMAN_READABLE_TIME
-	if [ "${HUMAN_TIME_IN}" != '' ]; then
+	## JH usage: HUMAN_TIME_IN=<input function/argument>; fHUMAN_READABLE_TIME
+	# usage: fHUMAN_READABLE_TIME <argument> ## JH
+	HUMAN_TIME_IN=${1} ## JH
+    if [ "${HUMAN_TIME_IN}" != '' ]; then
 		((IN_HOURS=${HUMAN_TIME_IN}/3600))
 		((IN_MINUTES=(${HUMAN_TIME_IN}%3600)/60))
 		((IN_SECONDS=${HUMAN_TIME_IN}%60))
@@ -168,22 +168,27 @@ fCURRENT_TIMES() {
 			echo
 			echo " ${LOG_HEADING}: "
 			cat ${LOG_FILE}
-			HUMAN_TIME_IN=${CATEGORY_TIME[${SELECTION}]}; fHUMAN_READABLE_TIME
+			## JH HUMAN_TIME_IN=${CATEGORY_TIME[${SELECTION}]}; fHUMAN_READABLE_TIME
+			fHUMAN_READABLE_TIME ${CATEGORY_TIME[${SELECTION}]} ## JH
 			echo " Total:   " ${HUMAN_TIME_OUT}
 		fi
 	done
 	echo
-	HUMAN_TIME_IN=$(($(fTIME_IN_SECONDS) - NOW_NOW)); fHUMAN_READABLE_TIME
-	echo -e " Your total unused time is: \n"$HUMAN_TIME_OUT
+	
+    ## JH HUMAN_TIME_IN=$(($(fTIME_IN_SECONDS) - NOW_NOW)); fHUMAN_READABLE_TIME
+	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - NOW_NOW)) ## JH
+	
+    echo -e " Your total unused time is: \n"${HUMAN_TIME_OUT}
 	echo
-	HUMAN_TIME_IN=$(($(fTIME_IN_SECONDS) - START_TIME)); fHUMAN_READABLE_TIME
-	echo -e " Your current total time is: \n"$HUMAN_TIME_OUT
+	
+    ## JH HUMAN_TIME_IN=$(($(fTIME_IN_SECONDS) - START_TIME)); fHUMAN_READABLE_TIME
+	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - START_TIME)) ## JH
+	
+    echo -e " Your current total time is: \n"${HUMAN_TIME_OUT}
 	sleep 10 # displays for 10 seconds
 	SELECTION=${SELECTION_HOLD} # to avoid accumulating time on option 12
 	HUMAN_TIME_IN=${HOLD_TIME_IN} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
 	HUMAN_TIME_OUT=${HOLD_TIME_OUT} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
-	
-	## JH SKIP_BIT=1 # Skips the if statement at the end of the loop where the time markers are told to switch places
 }
 
 fSUMMARY_AND_QUIT() {
@@ -196,7 +201,10 @@ fSUMMARY_AND_QUIT() {
 	fTIME_CALC ${CATEGORY_TIME[1]}
     
 	CATEGORY_TIME[1]=${CALC_TIME_OUT}
-	HUMAN_TIME_IN=${TIME_DIFF}; fHUMAN_READABLE_TIME
+	
+    ## JH HUMAN_TIME_IN=${TIME_DIFF}; fHUMAN_READABLE_TIME
+	fHUMAN_READABLE_TIME ${TIME_DIFF} ## JH
+    
 	echo " "${HUMAN_TIME_OUT} >> Administration.out
 	####
 	
@@ -207,11 +215,17 @@ fSUMMARY_AND_QUIT() {
 	for i in {1..12}; do
 		SELECTION=${i}; fCATEGORY_SELECT
 		if [ -f "${LOG_FILE}" ]; then
-			HUMAN_TIME_IN=${CATEGORY_TIME[$SELECTION]}; fHUMAN_READABLE_TIME
+			
+            ## JH HUMAN_TIME_IN=${CATEGORY_TIME[$SELECTION]}; fHUMAN_READABLE_TIME
+			fHUMAN_READABLE_TIME ${CATEGORY_TIME[$SELECTION]} ## JH
+            
 			fLOG_TIME
 		fi
 	done
-	HUMAN_TIME_IN=${FINAL_TIME}; fHUMAN_READABLE_TIME
+	
+    ## JH HUMAN_TIME_IN=${FINAL_TIME}; fHUMAN_READABLE_TIME
+    fHUMAN_READABLE_TIME ${FINAL_TIME} ## JH
+    
 	LOG_HEADING=""
 	LOG_FILE="TOTAL.out"
 	echo " "$(date +%H:%M:%S)" "${HUMAN_TIME} >> ${LOG_FILE}
@@ -248,8 +262,6 @@ fMAIN() {
     #### MAIN PROGRAM ####
     while [ "${SELECTION}" != "14" ]; do
         
-        ## JH SKIP_BIT=0 # resets the skip bit to 0
-        
         fMENU
         
         read -p " Selection: " -e SELECTION; fCATEGORY_SELECT
@@ -259,11 +271,13 @@ fMAIN() {
         elif [ ${SELECTION} -gt 0 ] && [ ${SELECTION} -le 12 ]; then
             echo -n " ${TIME_STAMP}" >> "${LOG_FILE}"
             
-            ## JH CALC_TIME_IN=${CATEGORY_TIME[$SELECTION]}; fTIME_CALC
             fTIME_CALC ${CATEGORY_TIME[${SELECTION}]}
             
             CATEGORY_TIME[${SELECTION}]=${CALC_TIME_OUT}
-            HUMAN_TIME_IN=${TIME_DIFF}; fHUMAN_READABLE_TIME
+            
+            ## JH HUMAN_TIME_IN=${TIME_DIFF}; fHUMAN_READABLE_TIME
+            fHUMAN_READABLE_TIME ${TIME_DIFF} ## JH
+            
             echo " "${HUMAN_TIME_OUT}" ">> ${LOG_FILE}
             echo
             echo " "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
@@ -278,15 +292,6 @@ fMAIN() {
                 TM_SWITCH_b=1
             fi
         fi
-    
-## JH        # allows the array designations that is holding the time markers to switch places
-## JH        if [ ${SKIP_BIT} -ne 1 ] && [ ${TM_SWITCH_a} -eq 0 ]; then
-## JH            TM_SWITCH_a=1
-## JH            TM_SWITCH_b=0
-## JH        elif [ ${SKIP_BIT} -ne 1 ]; then
-## JH            TM_SWITCH_a=0
-## JH            TM_SWITCH_b=1
-## JH        fi
     done
 }
 
