@@ -1,11 +1,22 @@
 #!/bin/bash
-# timer-v8.3.sh
-#   - consolidated if statements in fMAIN to eliminate the need for SKIP_BIT
-# 
-# timer-v8.4.sh
-#   - modified the usage of fHUMAN_READABLE_TIME to take arguments when called
-#
-#
+
+### VERSION TRACKER #################################################################
+# timer-v8.3.sh                                                                     #
+#   - consolidated if statements in fMAIN to eliminate the need for SKIP_BIT        #
+#                                                                                   #
+# timer-v8.4.sh                                                                     #
+#   - modified the usage of fHUMAN_READABLE_TIME to take arguments when called      #
+#                                                                                   #
+# timer-v8.5.sh                                                                     #
+# - changed menu to list options vertically instead of horizontally                 #
+# - changed fMAIN to clear the screen just after the read so that the menu is       #
+#     presented after the category time outputs                                     #
+# - added a just before closing to prevent the window from closing in a stand-      #
+#     alone execution - Bug #2                                                      #
+# - eliminate the need to display the last time because the screen clears           #
+#     right after option selection                                                  #
+#                                                                                   #
+#####################################################################################
 
 USER_ARG=${1}
 
@@ -25,7 +36,7 @@ fTIME_IN_SECONDS() {
 	MIN_IN_SEC=$((TIME[1] * 60))
 	HOUR_IN_SEC=$((TIME[0] * 3600))
 	TOTAL_IN_SEC=$((HOUR_IN_SEC+MIN_IN_SEC+SEC))
-	echo $TOTAL_IN_SEC
+	echo ${TOTAL_IN_SEC}
 }
 
 echo
@@ -49,16 +60,12 @@ NUM_CHECK='^[0-9]+$'
 
 fMENU() {
 	# Prints the header and main menu
-	clear # clears the screen for each header iteration
-	echo
-	echo -e " \t\t--- Jason's Time Tracker ---"
-	echo
-	# echos the previous timestamp using the last filled HUMAN_TIME_OUT argument
-	echo " Last Timestamp was: " $HUMAN_TIME_OUT
-	echo
-	# Prints the menu
-	echo -e " 1-  Administration\t2-  Case Time\t\t3-  Consult\n 4-  Development\t5-  KCS\t\t\t6-  Lab Time\n 7-  Meeting\t\t8-  RCA\t\t\t9-  Tools\n 10- Training Del\t11- Training Dev\t12- Training Received\n 13- Current Totals\t14- Summary and Quit"
-	echo
+	echo -e "\n \
+1- Administration\t6-  Lab Time\t\t11- Training Dev\n \
+2- Case Time\t\t7-  Meeting\t\t12- Training Received\n \
+3- Consult\t\t8-  RCA\t\t\t13- Current Totals\n \
+4- Development\t\t9-  Tools\t\t14- Summary and Quit\n \
+5- KCS\t\t\t10- Training Del\n"
 }
 
 fCATEGORY_SELECT() {
@@ -121,9 +128,7 @@ fCATEGORY_SELECT() {
 			fSUMMARY_AND_QUIT
 			;;
 		*) # anything other that 1 - 14 does nothing
-			echo
-			echo " Error, unknown selection, Please select 1 - 14"
-			sleep 2
+			echo =e "\n Error, unknown selection, Please select 1 - 14"
 			;;
 	esac
 }
@@ -131,9 +136,8 @@ fCATEGORY_SELECT() {
 fHUMAN_READABLE_TIME() { 
 	# converts time in seconds back to hours minutes seconds
 	# Input is HUMAN_TIME_IN - assignes argument HUMAN_TIME_OUT
-	## JH usage: HUMAN_TIME_IN=<input function/argument>; fHUMAN_READABLE_TIME
-	# usage: fHUMAN_READABLE_TIME <argument> ## JH
-	HUMAN_TIME_IN=${1} ## JH
+	# usage: fHUMAN_READABLE_TIME <argument>
+	HUMAN_TIME_IN=${1}
     if [ "${HUMAN_TIME_IN}" != '' ]; then
 		((IN_HOURS=${HUMAN_TIME_IN}/3600))
 		((IN_MINUTES=(${HUMAN_TIME_IN}%3600)/60))
@@ -157,35 +161,31 @@ fTIME_CALC() {
 
 fCURRENT_TIMES() {
 # allows you to see how much time you have accumulated for each category
-	echo
 	SELECTION_HOLD=${SELECTION}
 	HOLD_TIME_IN=${HUMAN_TIME_IN} # preserves current HUMAN_TIME_IN to preserve "Last Timestamp was:" 
 	HOLD_TIME_OUT=${HUMAN_TIME_OUT} # preserves current HUMAN_TIME_OUT to preserve "Last Timestamp was:" 
-	# displays current script duration in human readable time
+	
+    # displays current script duration in human readable time
 	for i in {1..12}; do
 		SELECTION=${i}; fCATEGORY_SELECT
 		if [ -f "${LOG_FILE}" ]; then
 			echo
 			echo " ${LOG_HEADING}: "
 			cat ${LOG_FILE}
-			## JH HUMAN_TIME_IN=${CATEGORY_TIME[${SELECTION}]}; fHUMAN_READABLE_TIME
-			fHUMAN_READABLE_TIME ${CATEGORY_TIME[${SELECTION}]} ## JH
+			fHUMAN_READABLE_TIME ${CATEGORY_TIME[${SELECTION}]}
 			echo " Total:   " ${HUMAN_TIME_OUT}
 		fi
 	done
 	echo
-	
-    ## JH HUMAN_TIME_IN=$(($(fTIME_IN_SECONDS) - NOW_NOW)); fHUMAN_READABLE_TIME
-	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - NOW_NOW)) ## JH
-	
+    
+	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - NOW_NOW))
+    
     echo -e " Your total unused time is: \n"${HUMAN_TIME_OUT}
 	echo
-	
-    ## JH HUMAN_TIME_IN=$(($(fTIME_IN_SECONDS) - START_TIME)); fHUMAN_READABLE_TIME
-	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - START_TIME)) ## JH
-	
+    
+	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - START_TIME))
+    
     echo -e " Your current total time is: \n"${HUMAN_TIME_OUT}
-	sleep 10 # displays for 10 seconds
 	SELECTION=${SELECTION_HOLD} # to avoid accumulating time on option 12
 	HUMAN_TIME_IN=${HOLD_TIME_IN} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
 	HUMAN_TIME_OUT=${HOLD_TIME_OUT} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
@@ -199,33 +199,23 @@ fSUMMARY_AND_QUIT() {
 	echo -n " "${TIME_STAMP} >> Administration.out
     
 	fTIME_CALC ${CATEGORY_TIME[1]}
-    
-	CATEGORY_TIME[1]=${CALC_TIME_OUT}
-	
-    ## JH HUMAN_TIME_IN=${TIME_DIFF}; fHUMAN_READABLE_TIME
-	fHUMAN_READABLE_TIME ${TIME_DIFF} ## JH
+    CATEGORY_TIME[1]=${CALC_TIME_OUT}
+	fHUMAN_READABLE_TIME ${TIME_DIFF}
     
 	echo " "${HUMAN_TIME_OUT} >> Administration.out
 	####
 	
 	clear
-	echo
-	echo " -- Time summary --"
-	echo
+	echo -e "\n -- Time summary --\n"
 	for i in {1..12}; do
 		SELECTION=${i}; fCATEGORY_SELECT
 		if [ -f "${LOG_FILE}" ]; then
-			
-            ## JH HUMAN_TIME_IN=${CATEGORY_TIME[$SELECTION]}; fHUMAN_READABLE_TIME
-			fHUMAN_READABLE_TIME ${CATEGORY_TIME[$SELECTION]} ## JH
-            
+			fHUMAN_READABLE_TIME ${CATEGORY_TIME[$SELECTION]}
 			fLOG_TIME
 		fi
 	done
 	
-    ## JH HUMAN_TIME_IN=${FINAL_TIME}; fHUMAN_READABLE_TIME
-    fHUMAN_READABLE_TIME ${FINAL_TIME} ## JH
-    
+    fHUMAN_READABLE_TIME ${FINAL_TIME}
 	LOG_HEADING=""
 	LOG_FILE="TOTAL.out"
 	echo " "$(date +%H:%M:%S)" "${HUMAN_TIME} >> ${LOG_FILE}
@@ -233,9 +223,10 @@ fSUMMARY_AND_QUIT() {
 	cat ${TIME_LOG}
 	echo
 	echo
-	echo " Thanks for playing"
+	read -p " Thanks for playing - hit enter to exit."
 	echo
 	
+    
 	exit 1
 }
 
@@ -254,6 +245,8 @@ fLOG_TIME() {
 
 fMAIN() {
     # Puts a header in the time log file
+    clear
+    echo -e "\n\t\t--- Jason's Time Tracker ---\n"
     TIME_LOG="Time_Log_$(date +%Y-%m-%d).txt"
     touch ${TIME_LOG} # creates the time log before main is run
     echo "__________________________________________________" >> ${TIME_LOG}
@@ -261,27 +254,23 @@ fMAIN() {
     
     #### MAIN PROGRAM ####
     while [ "${SELECTION}" != "14" ]; do
-        
         fMENU
+        read -p " Selection: " -e SELECTION
+        clear # clears the screen for each header iteration
+        echo -e "\n\t\t--- Jason's Time Tracker ---\n"
+		fCATEGORY_SELECT
         
-        read -p " Selection: " -e SELECTION; fCATEGORY_SELECT
         if ! [[ ${SELECTION} =~ ${NUM_CHECK} ]] ; then
             echo " Error, unknown selection, must be numeric" >&2
-            sleep 2
         elif [ ${SELECTION} -gt 0 ] && [ ${SELECTION} -le 12 ]; then
             echo -n " ${TIME_STAMP}" >> "${LOG_FILE}"
             
             fTIME_CALC ${CATEGORY_TIME[${SELECTION}]}
-            
             CATEGORY_TIME[${SELECTION}]=${CALC_TIME_OUT}
-            
-            ## JH HUMAN_TIME_IN=${TIME_DIFF}; fHUMAN_READABLE_TIME
-            fHUMAN_READABLE_TIME ${TIME_DIFF} ## JH
+            fHUMAN_READABLE_TIME ${TIME_DIFF}
             
             echo " "${HUMAN_TIME_OUT}" ">> ${LOG_FILE}
-            echo
-            echo " "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
-            sleep 5
+            echo -e "\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
         
         # allows the array designations that is holding the time markers to switch places
             if [ ${TM_SWITCH_a} -eq 0 ]; then
