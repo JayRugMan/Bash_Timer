@@ -18,7 +18,7 @@
 #                                                                                   #
 # timer-v8.6.sh                                                                     #
 # - issue #3 display running totals always                                          #
-#	 - Changed option 13 to say "update unused/total"                               #
+#    - Changed option 13 to say "update unused/total"                               #
 #    - Changed printed title of fCURRENT_TIMES                                      #
 #    - Print fCURRENT_TIMES as program starts                                       #
 #    - Print fCURRENT_TIMES for each option selected up to 13                       #
