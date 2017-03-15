@@ -16,6 +16,15 @@
 # - eliminate the need to display the last time because the screen clears           #
 #     right after option selection                                                  #
 #                                                                                   #
+# timer-v8.6.sh                                                                     #
+# - issue #3 display running totals always                                          #
+#    - Changed option 13 to say "update unused/total"                               #
+#    - Changed printed title of fCURRENT_TIMES                                      #
+#    - Print fCURRENT_TIMES as program starts                                       #
+#    - Print fCURRENT_TIMES for each option selected up to 13                       #
+#    - Changed the Main title to be slimmer                                         #
+#                                                                                   #
+#                                                                                   #
 #####################################################################################
 
 USER_ARG=${1}
@@ -63,7 +72,7 @@ fMENU() {
 	echo -e "\n \
 1- Administration\t6-  Lab Time\t\t11- Training Dev\n \
 2- Case Time\t\t7-  Meeting\t\t12- Training Received\n \
-3- Consult\t\t8-  RCA\t\t\t13- Current Totals\n \
+3- Consult\t\t8-  RCA\t\t\t13- Update Unused/Total Time\n \
 4- Development\t\t9-  Tools\t\t14- Summary and Quit\n \
 5- KCS\t\t\t10- Training Del\n"
 }
@@ -128,7 +137,7 @@ fCATEGORY_SELECT() {
 			fSUMMARY_AND_QUIT
 			;;
 		*) # anything other that 1 - 14 does nothing
-			echo =e "\n Error, unknown selection, Please select 1 - 14"
+			echo -e "\n Error, unknown selection, Please select 1 - 14"
 			;;
 	esac
 }
@@ -162,10 +171,10 @@ fTIME_CALC() {
 fCURRENT_TIMES() {
 # allows you to see how much time you have accumulated for each category
 	SELECTION_HOLD=${SELECTION}
-	HOLD_TIME_IN=${HUMAN_TIME_IN} # preserves current HUMAN_TIME_IN to preserve "Last Timestamp was:" 
-	HOLD_TIME_OUT=${HUMAN_TIME_OUT} # preserves current HUMAN_TIME_OUT to preserve "Last Timestamp was:" 
 	
     # displays current script duration in human readable time
+	echo -ne "\n\t    == Recorded Totals =="
+	
 	for i in {1..12}; do
 		SELECTION=${i}; fCATEGORY_SELECT
 		if [ -f "${LOG_FILE}" ]; then
@@ -187,8 +196,6 @@ fCURRENT_TIMES() {
     
     echo -e " Your current total time is: \n"${HUMAN_TIME_OUT}
 	SELECTION=${SELECTION_HOLD} # to avoid accumulating time on option 12
-	HUMAN_TIME_IN=${HOLD_TIME_IN} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
-	HUMAN_TIME_OUT=${HOLD_TIME_OUT} # resets the preserved HUMAN_TIME for "Last Timestamp was:"
 }
 
 fSUMMARY_AND_QUIT() {
@@ -222,7 +229,6 @@ fSUMMARY_AND_QUIT() {
 	fLOG_TIME
 	cat ${TIME_LOG}
 	echo
-	echo
 	read -p " Thanks for playing - hit enter to exit."
 	echo
 	
@@ -246,18 +252,19 @@ fLOG_TIME() {
 fMAIN() {
     # Puts a header in the time log file
     clear
-    echo -e "\n\t\t--- Jason's Time Tracker ---\n"
+    echo -e "================== Jason's Time Tracker ========="
     TIME_LOG="Time_Log_$(date +%Y-%m-%d).txt"
     touch ${TIME_LOG} # creates the time log before main is run
     echo "__________________________________________________" >> ${TIME_LOG}
     echo " "$(date) >> ${TIME_LOG}
+	fCURRENT_TIMES
     
     #### MAIN PROGRAM ####
     while [ "${SELECTION}" != "14" ]; do
         fMENU
         read -p " Selection: " -e SELECTION
         clear # clears the screen for each header iteration
-        echo -e "\n\t\t--- Jason's Time Tracker ---\n"
+		echo -e "================== Jason's Time Tracker ========="
 		fCATEGORY_SELECT
         
         if ! [[ ${SELECTION} =~ ${NUM_CHECK} ]] ; then
@@ -270,9 +277,12 @@ fMAIN() {
             fHUMAN_READABLE_TIME ${TIME_DIFF}
             
             echo " "${HUMAN_TIME_OUT}" ">> ${LOG_FILE}
-            echo -e "\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
+			SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT})
+			fCURRENT_TIMES
+            ## JH echo -e "\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
+            echo "${SELECTION_OUTPUT}"
         
-        # allows the array designations that is holding the time markers to switch places
+        # allows the array designations that are holding the time markers to switch places
             if [ ${TM_SWITCH_a} -eq 0 ]; then
                 TM_SWITCH_a=1
                 TM_SWITCH_b=0
