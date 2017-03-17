@@ -24,23 +24,25 @@
 #    - Print fCURRENT_TIMES for each option selected up to 13                       #
 #    - Changed the Main title to be slimmer                                         #
 #                                                                                   #
+# timer-v6.7.sh                                                                     #
+# - issue #8 cannot designate start time if not run from terminal                   #
+#    - Removed USER_ARG                                                             #
+#    - Created fUSER_TIME_CHECK function to ask user for a start time of continue   #
+#      with the default time                                                        #
+#    - Modified the fTIME_IN_SECONDS function to eliminate the if statement         #
+#      as fUSER_TIME_CHECK takes care of user-designated time                       #
+#    - Moved variable initialization to fMAIN due to fUSER_TIME_CHECK               #
+#      dependencies                                                                 #
+#    - Added PROGRAM_TITLE variable                                                 #
 #                                                                                   #
 #####################################################################################
 
-USER_ARG=${1}
-
 fTIME_IN_SECONDS() {
 	# Takes current time and echo's it back in "second" format
-	# no input values needed if [ "${1}" == "-s" ]; then #new
-	if [ "${USER_ARG}" == "--user-start-time" ] || [ "${USER_ARG}" == "-u" ]; then
-		read -p " Please enter your start-time in 24 hour format (HH mm ss - no leading zeros)? " -e USER_HOURS USER_MIN USER_SEC
-		TIME=(${USER_HOURS} ${USER_MIN} ${USER_SEC})
-	else
-		TIME_NOW=$(date +%H-%M-%S)
-		TIME[0]=$(echo $TIME_NOW | awk -F '-' '{print $1}' | sed 's/^0*//')
-		TIME[1]=$(echo $TIME_NOW | awk -F '-' '{print $2}' | sed 's/^0*//')
-		TIME[2]=$(echo $TIME_NOW | awk -F '-' '{print $3}' | sed 's/^0*//')
-	fi
+	TIME_NOW=$(date +%H-%M-%S)
+	TIME[0]=$(echo $TIME_NOW | awk -F '-' '{print $1}' | sed 's/^0*//')
+	TIME[1]=$(echo $TIME_NOW | awk -F '-' '{print $2}' | sed 's/^0*//')
+	TIME[2]=$(echo $TIME_NOW | awk -F '-' '{print $3}' | sed 's/^0*//')
 	SEC=${TIME[2]}
 	MIN_IN_SEC=$((TIME[1] * 60))
 	HOUR_IN_SEC=$((TIME[0] * 3600))
@@ -48,24 +50,25 @@ fTIME_IN_SECONDS() {
 	echo ${TOTAL_IN_SEC}
 }
 
-echo
-START_TIME=$(fTIME_IN_SECONDS)
-NOW_NOW=${START_TIME}
-unset USER_ARG
-HUMAN_TIME_OUT=" 0 Hour(s), 0 Minute(s), 0 Second(s)"
-HUMAN_TIME_IN=0
-TIME_STAMP=$(date +%H:%M:%S)
-TIME_MARKER[0]=${NOW_NOW}
-TIME_MARKER[1]=0
-TM_SWITCH_a=0
-TM_SWITCH_b=1
-CALC_TIME_IN=''
-CALC_TIME_OUT=''
-SELECTION=0
-CATEGORY_TIME=(0 0 0 0 0 0 0 0 0 0 0 0 0)
-LOG_FILE=""
-LOG_HEADING=""
-NUM_CHECK='^[0-9]+$'
+fUSER_TIME_CHECK() {
+    # determines whether user wants to specify a start time or not
+    echo -e "${PROGRAM_TITLE}\n"
+	echo -e " To designate a start-time, enter it in 24 hour format\n \
+(HH mm ss - no leading zeros) or just hit enter to continue"
+	while [[ ! ${USER_HOURS} =~ ${NUM_CHECK} ]]; do
+		read -p " : " -e USER_HOURS USER_MIN USER_SEC
+		if [[ -z ${USER_HOURS} ]]; then
+			START_TIME=$(fTIME_IN_SECONDS)
+			break
+		fi
+		TIME=(${USER_HOURS} ${USER_MIN} ${USER_SEC})
+		SEC=${TIME[2]}
+		MIN_IN_SEC=$((TIME[1] * 60))
+		HOUR_IN_SEC=$((TIME[0] * 3600))
+		TOTAL_IN_SEC=$((HOUR_IN_SEC+MIN_IN_SEC+SEC))
+		START_TIME=${TOTAL_IN_SEC}
+	done
+}
 
 fMENU() {
 	# Prints the header and main menu
@@ -250,9 +253,29 @@ fLOG_TIME() {
 }
 
 fMAIN() {
-    # Puts a header in the time log file
+	NUM_CHECK='^[0-9]+$'
+	PROGRAM_TITLE="================== Jason's Time Tracker ========="
+    # Sets up the initial variables
+	fUSER_TIME_CHECK
+
+	## set Variables ##
+	NOW_NOW=${START_TIME}
+	HUMAN_TIME_OUT=" 0 Hour(s), 0 Minute(s), 0 Second(s)"
+	HUMAN_TIME_IN=0
+	TIME_STAMP=$(date +%H:%M:%S)
+	TIME_MARKER[0]=${NOW_NOW}
+	TIME_MARKER[1]=0
+	TM_SWITCH_a=0
+	TM_SWITCH_b=1
+	CALC_TIME_IN=''
+	CALC_TIME_OUT=''
+	SELECTION=0
+	CATEGORY_TIME=(0 0 0 0 0 0 0 0 0 0 0 0 0)
+	LOG_FILE=""
+	LOG_HEADING=""
+
     clear
-    echo -e "================== Jason's Time Tracker ========="
+    echo -e "${PROGRAM_TITLE}"
     TIME_LOG="Time_Log_$(date +%Y-%m-%d).txt"
     touch ${TIME_LOG} # creates the time log before main is run
     echo "__________________________________________________" >> ${TIME_LOG}
@@ -264,7 +287,7 @@ fMAIN() {
         fMENU
         read -p " Selection: " -e SELECTION
         clear # clears the screen for each header iteration
-		echo -e "================== Jason's Time Tracker ========="
+    echo -e "${PROGRAM_TITLE}"
 		fCATEGORY_SELECT
         
         if ! [[ ${SELECTION} =~ ${NUM_CHECK} ]] ; then
@@ -279,7 +302,6 @@ fMAIN() {
             echo " "${HUMAN_TIME_OUT}" ">> ${LOG_FILE}
 			SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT})
 			fCURRENT_TIMES
-            ## JH echo -e "\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT}
             echo "${SELECTION_OUTPUT}"
         
         # allows the array designations that are holding the time markers to switch places
