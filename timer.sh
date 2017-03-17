@@ -24,7 +24,7 @@
 #    - Print fCURRENT_TIMES for each option selected up to 13                       #
 #    - Changed the Main title to be slimmer                                         #
 #                                                                                   #
-# timer-v6.7.sh                                                                     #
+# timer-v8.7.sh                                                                     #
 # - issue #8 cannot designate start time if not run from terminal                   #
 #    - Removed USER_ARG                                                             #
 #    - Created fUSER_TIME_CHECK function to ask user for a start time of continue   #
