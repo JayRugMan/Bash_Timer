@@ -35,6 +35,12 @@
 #      dependencies                                                                 #
 #    - Added PROGRAM_TITLE variable                                                 #
 #                                                                                   #
+# minor edit timer-v8.7-2                                                           #
+#    - Changed the order of "Recorded Totals" and "Most Recent"                     #
+#                                                                                   #
+#                                                                                   #
+#                                                                                   #
+#                                                                                   #
 #####################################################################################
 
 fTIME_IN_SECONDS() {
@@ -301,8 +307,8 @@ fMAIN() {
             
             echo " "${HUMAN_TIME_OUT}" ">> ${LOG_FILE}
 			SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT})
-			fCURRENT_TIMES
             echo "${SELECTION_OUTPUT}"
+			fCURRENT_TIMES
         
         # allows the array designations that are holding the time markers to switch places
             if [ ${TM_SWITCH_a} -eq 0 ]; then
