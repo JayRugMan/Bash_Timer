@@ -35,7 +35,7 @@
 #      dependencies                                                                 #
 #    - Added PROGRAM_TITLE variable                                                 #
 #                                                                                   #
-# minor edit timer-v8.7-2                                                            #
+# minor edit timer-v8.7-2                                                           #
 #    - Changed the order of "Recorded Totals" and "Most Recent"                     #
 #                                                                                   #
 #                                                                                   #
