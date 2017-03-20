@@ -215,6 +215,7 @@ fSUMMARY_AND_QUIT() {
 	LOG_FILE="TOTAL.out"
     FINAL_HUMAN_READABLE_TIME=$(fHUMAN_READABLE_TIME ${FINAL_TIME})
 	echo " $(date +%H:%M:%S) ${FINAL_HUMAN_READABLE_TIME}" >> ${LOG_FILE} 
+    fLOG_TIME "${FINAL_HUMAN_READABLE_TIME}"
 	cat ${TIME_LOG}
 	echo
 	read -p " Thanks for playing - hit enter to exit."
