@@ -38,23 +38,16 @@
 # minor edit timer-v8.7-2                                                           #
 #    - Changed the order of "Recorded Totals" and "Most Recent"                     #
 #                                                                                   #
+# timer-v8.7.sh                                                                     #
+# - issue #12 Epoch Time Enhancement                                                #
+#    - Eliminated the need for fTIME_IN_SECONDS                                     #
+#    - Modified fHUMAN_READABLE_TIME to echo HUMAN_TIME_OUT                         #
+#        - Track down dependencies of fHUMAN_READABLE_TIME as it currently stands   #
+#                                                                                   #
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #
 #####################################################################################
-
-fTIME_IN_SECONDS() {
-	# Takes current time and echo's it back in "second" format
-	TIME_NOW=$(date +%H-%M-%S)
-	TIME[0]=$(echo $TIME_NOW | awk -F '-' '{print $1}' | sed 's/^0*//')
-	TIME[1]=$(echo $TIME_NOW | awk -F '-' '{print $2}' | sed 's/^0*//')
-	TIME[2]=$(echo $TIME_NOW | awk -F '-' '{print $3}' | sed 's/^0*//')
-	SEC=${TIME[2]}
-	MIN_IN_SEC=$((TIME[1] * 60))
-	HOUR_IN_SEC=$((TIME[0] * 3600))
-	TOTAL_IN_SEC=$((HOUR_IN_SEC+MIN_IN_SEC+SEC))
-	echo ${TOTAL_IN_SEC}
-}
 
 fUSER_TIME_CHECK() {
     # determines whether user wants to specify a start time or not
@@ -64,14 +57,10 @@ fUSER_TIME_CHECK() {
 	while [[ ! ${USER_HOURS} =~ ${NUM_CHECK} ]]; do
 		read -p " : " -e USER_HOURS USER_MIN USER_SEC
 		if [[ -z ${USER_HOURS} ]]; then
-			START_TIME=$(fTIME_IN_SECONDS)
+			START_TIME=$(date +%s)
 			break
 		fi
-		TIME=(${USER_HOURS} ${USER_MIN} ${USER_SEC})
-		SEC=${TIME[2]}
-		MIN_IN_SEC=$((TIME[1] * 60))
-		HOUR_IN_SEC=$((TIME[0] * 3600))
-		TOTAL_IN_SEC=$((HOUR_IN_SEC+MIN_IN_SEC+SEC))
+        TOTAL_IN_SEC=$(date --date="$(date +%Y/%m/%d) ${USER_HOURS:-0}:${USER_MIN:-0}:${USER_SEC:-0}" +%s)
 		START_TIME=${TOTAL_IN_SEC}
 	done
 }
@@ -162,6 +151,7 @@ fHUMAN_READABLE_TIME() {
 		((IN_SECONDS=${HUMAN_TIME_IN}%60))
 		HUMAN_TIME_OUT=" ${IN_HOURS} Hour(s), ${IN_MINUTES} Minute(s), ${IN_SECONDS} Second(s)"
 	fi
+    echo ${HUMAN_TIME_OUT}
 }
 
 fTIME_CALC() {
@@ -171,7 +161,7 @@ fTIME_CALC() {
 	# - adds the time difference to the current CALC_TIME_OUT argument START_TIME=$(fTIME_IN_SECONDS)
 	CALC_TIME_IN=${1}
     TIME_STAMP=$(date +%H:%M:%S) # records the time that this interval starts, to be used when the next interval is recorded
-	NOW_NOW=$(fTIME_IN_SECONDS)
+	NOW_NOW=$(date +%s)
 	TIME_MARKER[${TM_SWITCH_b}]=${NOW_NOW} # TM_SWITCH_b will start as 1 and become 0 at the end of each iteration of MAIN, unless skipped
 	export TIME_DIFF=$((TIME_MARKER[${TM_SWITCH_b}] - TIME_MARKER[${TM_SWITCH_a}])) # _a will always be the earliest time, _b the most recent
 	CALC_TIME_OUT=$((CALC_TIME_IN + TIME_DIFF))
@@ -190,35 +180,26 @@ fCURRENT_TIMES() {
 			echo
 			echo " ${LOG_HEADING}: "
 			cat ${LOG_FILE}
-			fHUMAN_READABLE_TIME ${CATEGORY_TIME[${SELECTION}]}
-			echo " Total:   " ${HUMAN_TIME_OUT}
+			echo " Total:   $(fHUMAN_READABLE_TIME ${CATEGORY_TIME[${SELECTION}]})"
 		fi
 	done
-	echo
     
-	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - NOW_NOW))
-    
-    echo -e " Your total unused time is: \n"${HUMAN_TIME_OUT}
-	echo
-    
-	fHUMAN_READABLE_TIME $(($(fTIME_IN_SECONDS) - START_TIME))
-    
-    echo -e " Your current total time is: \n"${HUMAN_TIME_OUT}
+    echo -e "\n Your total unused time is: \n$(fHUMAN_READABLE_TIME $(($(date +%s) - NOW_NOW)))\n"
+    echo -e " Your current total time is: \n$(fHUMAN_READABLE_TIME $(($(date +%s) - START_TIME)))"
 	SELECTION=${SELECTION_HOLD} # to avoid accumulating time on option 12
 }
 
 fSUMMARY_AND_QUIT() {
 	# 
-	FINAL_TIME=$(($(fTIME_IN_SECONDS) - START_TIME))
+	FINAL_TIME=$(($(date +%s) - START_TIME))
 	
 	# adds the final time to Administration time
 	echo -n " "${TIME_STAMP} >> Administration.out
     
 	fTIME_CALC ${CATEGORY_TIME[1]}
     CATEGORY_TIME[1]=${CALC_TIME_OUT}
-	fHUMAN_READABLE_TIME ${TIME_DIFF}
     
-	echo " "${HUMAN_TIME_OUT} >> Administration.out
+	echo " $(fHUMAN_READABLE_TIME ${TIME_DIFF})" >> Administration.out
 	####
 	
 	clear
@@ -226,16 +207,14 @@ fSUMMARY_AND_QUIT() {
 	for i in {1..12}; do
 		SELECTION=${i}; fCATEGORY_SELECT
 		if [ -f "${LOG_FILE}" ]; then
-			fHUMAN_READABLE_TIME ${CATEGORY_TIME[$SELECTION]}
-			fLOG_TIME
+            fLOG_TIME "$(fHUMAN_READABLE_TIME ${CATEGORY_TIME[$SELECTION]})"
 		fi
 	done
 	
-    fHUMAN_READABLE_TIME ${FINAL_TIME}
 	LOG_HEADING=""
 	LOG_FILE="TOTAL.out"
-	echo " "$(date +%H:%M:%S)" "${HUMAN_TIME} >> ${LOG_FILE}
-	fLOG_TIME
+    FINAL_HUMAN_READABLE_TIME=$(fHUMAN_READABLE_TIME ${FINAL_TIME})
+	echo " $(date +%H:%M:%S) ${FINAL_HUMAN_READABLE_TIME}" >> ${LOG_FILE} 
 	cat ${TIME_LOG}
 	echo
 	read -p " Thanks for playing - hit enter to exit."
@@ -252,7 +231,7 @@ fLOG_TIME() {
 		echo >> ${TIME_LOG}
 		echo ${LOG_HEADING} >> ${TIME_LOG}
 		cat ${LOG_FILE} >> ${TIME_LOG}
-		echo -e " Total- "${HUMAN_TIME_OUT} >> ${TIME_LOG}
+		echo -e " Total-   ${1}" >> ${TIME_LOG}
 		echo >> ${TIME_LOG}
 		rm -f ${LOG_FILE}
 	fi
@@ -303,11 +282,12 @@ fMAIN() {
             
             fTIME_CALC ${CATEGORY_TIME[${SELECTION}]}
             CATEGORY_TIME[${SELECTION}]=${CALC_TIME_OUT}
-            fHUMAN_READABLE_TIME ${TIME_DIFF}
+            TIME_OUTPUT=$(fHUMAN_READABLE_TIME ${TIME_DIFF}) # TIME_DIFF is global and assigned in fTIME_CALC
+			SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n ${LOG_HEADING}: ${TIME_OUTPUT}")
             
-            echo " "${HUMAN_TIME_OUT}" ">> ${LOG_FILE}
-			SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n "${LOG_HEADING}:" " ${HUMAN_TIME_OUT})
+            echo " ${TIME_OUTPUT} ">> ${LOG_FILE} 
             echo "${SELECTION_OUTPUT}"
+            
 			fCURRENT_TIMES
         
         # allows the array designations that are holding the time markers to switch places
