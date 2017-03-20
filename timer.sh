@@ -38,7 +38,7 @@
 # minor edit timer-v8.7-2                                                           #
 #    - Changed the order of "Recorded Totals" and "Most Recent"                     #
 #                                                                                   #
-# timer-v8.7.sh                                                                     #
+# timer-v8.8.sh                                                                     #
 # - issue #12 Epoch Time Enhancement                                                #
 #    - Eliminated the need for fTIME_IN_SECONDS                                     #
 #    - Modified fHUMAN_READABLE_TIME to echo HUMAN_TIME_OUT                         #
