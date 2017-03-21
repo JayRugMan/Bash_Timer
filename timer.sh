@@ -45,7 +45,7 @@
 #        - Track down dependencies of fHUMAN_READABLE_TIME as it currently stands   #
 #                                                                                   #
 # timer-v8.8-2                                                                      #
-#  - Minor Edit =modified the date format from yyyy/mm/dd to yyyy-mm-dd do          #
+#  - Minor Edit - modified the date format from yyyy/mm/dd to yyyy-mm-dd do         #
 #    that it works in MobaXterm on Windows operating systems                        #
 #  - Replaced all \t with four spaces                                               #
 #                                                                                   #
