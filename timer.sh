@@ -49,16 +49,26 @@
 #    that it works in MobaXterm on Windows operating systems                        #
 #  - Replaced all \t with four spaces                                               #
 #                                                                                   #
+# timer-v8.9                                                                        #
+#  - Issue #5, arguments, not files                                                 #
+#    - created an array to hold each category's output                              #
+#    - restructured fCATEGORY_SELECT, fCURRENT_TIMES, fSUMMARY_AND_QUIT and         #
+#      fMAIN to accomodate the time arrays instead of files                         #
+#    - eliminated the need for fLOG_TIME                                            #
+#    - added comments to explain each line of code                                  #
+#                                                                                   #
+#                                                                                   #
 #####################################################################################
 
 fUSER_TIME_CHECK() {
     # determines whether user wants to specify a start time or not
+    # and sets START_TIME (in seconds) accordingly
     echo -e "${PROGRAM_TITLE}\n"
     echo -e " To designate a start-time, enter it in 24 hour format\n \
-(HH mm ss - no leading zeros) or just hit enter to continue"
-    while [[ ! ${USER_HOURS} =~ ${NUM_CHECK} ]]; do
+    \b\b\b\b(HH mm ss - no leading zeros) or just hit enter to continue"
+    while [[ ! ${USER_HOURS} =~ ${NUM_CHECK} ]]; do # Checks that the input is a number and loops if not
         read -p " : " -e USER_HOURS USER_MIN USER_SEC
-        if [[ -z ${USER_HOURS} ]]; then
+        if [[ -z ${USER_HOURS} ]]; then # if no time is specified, start time is set to "now" and the loop breaks
             START_TIME=$(date +%s)
             break
         fi
@@ -68,13 +78,13 @@ fUSER_TIME_CHECK() {
 }
 
 fMENU() {
-    # Prints the header and main menu
+    # Prints the main menu
     echo -e "\n \
-1- Administration\t6-  Lab Time\t\t11- Training Dev\n \
-2- Case Time\t\t7-  Meeting\t\t12- Training Received\n \
-3- Consult\t\t8-  RCA\t\t\t13- Update Unused/Total Time\n \
-4- Development\t\t9-  Tools\t\t14- Summary and Quit\n \
-5- KCS\t\t\t10- Training Del\n"
+    \b\b\b\b1- Administration\t6-  Lab Time\t\t11- Training Dev\n \
+    \b\b\b\b2- Case Time\t\t7-  Meeting\t\t12- Training Received\n \
+    \b\b\b\b3- Consult\t\t8-  RCA\t\t\t13- Update Unused/Total Time\n \
+    \b\b\b\b4- Development\t\t9-  Tools\t\t14- Summary and Quit\n \
+    \b\b\b\b5- KCS\t\t\t10- Training Del\n"
 }
 
 fCATEGORY_SELECT() {
@@ -82,53 +92,7 @@ fCATEGORY_SELECT() {
     # input is SELECTION - returns full values above
     # usage: read -p " Selection: " -e SELECTION; fCATEGORY_SELECT
     case ${SELECTION} in
-        1) # Administration
-            LOG_FILE="Administration.out"
-            LOG_HEADING="Administration"
-            ;;
-        2) # Case Time
-            LOG_FILE="CaseTime.out"
-            LOG_HEADING="Case Time"
-            ;;
-        3) # Consult
-            LOG_FILE="Consult.out"
-            LOG_HEADING="Consult"
-            ;;
-        4) # Development
-            LOG_FILE="Development.out"
-            LOG_HEADING="Development"
-            ;;
-        5) # KCS
-            LOG_FILE="KCS.out"
-            LOG_HEADING="KCS"
-            ;;
-        6) # Lab Time
-            LOG_FILE="LabTime.out"
-            LOG_HEADING="Lab Time"
-            ;;
-        7) # Meeting
-            LOG_FILE="Meeting.out"
-            LOG_HEADING="Meeting"
-            ;;
-        8) # RCA
-            LOG_FILE="RCA.out"
-            LOG_HEADING="RCA"
-            ;;
-        9) # Tools
-            LOG_FILE="Tools.out"
-            LOG_HEADING="Tools"
-            ;; 
-        10) # Training Delivered
-            LOG_FILE="TrainingDel.out"
-            LOG_HEADING="Training Delivered"
-            ;;
-        11) # Training Developed
-            LOG_FILE="TrainingDev.out"
-            LOG_HEADING="Training Developed"
-            ;;
-        12) # Training Received
-            LOG_FILE="TrainingRec.out"
-            LOG_HEADING="Training Received"
+        1|2|3|4|5|6|7|8|9|10|11|12)
             ;;
         13) # allows you to see how much time you have accumulated for each category
             fCURRENT_TIMES
@@ -158,99 +122,80 @@ fHUMAN_READABLE_TIME() {
 
 fTIME_CALC() {
     # Calculates the difference in seconds between the two time markers
-    # input is CALC_TIME_IN - assigns a calculated value to CALC_TIME_OUT
+    # usage: fTIME_CALC <argument>
+    # defines global variables TIME_STAMP, NOW_NOW, TIME_DIFF and CALC_TIME_OUT
     # - determines the time difference, in seconds between the two time markers
-    # - adds the time difference to the current CALC_TIME_OUT argument START_TIME=$(fTIME_IN_SECONDS)
+    # - adds the time difference to the current CALC_TIME_OUT argument
     CALC_TIME_IN=${1}
-    TIME_STAMP=$(date +%H:%M:%S) # records the time that this interval starts, to be used when the next interval is recorded
+    TIME_STAMP=$(date +%T) # records the time that this interval starts, to be used when the next interval is recorded
     NOW_NOW=$(date +%s)
     TIME_MARKER[${TM_SWITCH_b}]=${NOW_NOW} # TM_SWITCH_b will start as 1 and become 0 at the end of each iteration of MAIN, unless skipped
-    export TIME_DIFF=$((TIME_MARKER[${TM_SWITCH_b}] - TIME_MARKER[${TM_SWITCH_a}])) # _a will always be the earliest time, _b the most recent
+    TIME_DIFF=$((TIME_MARKER[${TM_SWITCH_b}] - TIME_MARKER[${TM_SWITCH_a}])) # _a will always be the earliest time, _b the most recent
     CALC_TIME_OUT=$((CALC_TIME_IN + TIME_DIFF))
 }
 
 fCURRENT_TIMES() {
-# allows you to see how much time you have accumulated for each category
-    SELECTION_HOLD=${SELECTION}
-    
-    # displays current script duration in human readable time
+    # allows you to see how much time you have accumulated for each category
+    # and the current script duration in human readable time
+    # uses global variable LOG_ARRAY, LOG_ARRAY, CATEGORY_TIME, NOW_NOW, and START_TIME
+    # only displays information
     echo -ne "\n\t    == Recorded Totals =="
-    
-    for i in {1..12}; do
-        SELECTION=${i}; fCATEGORY_SELECT
-        if [ -f "${LOG_FILE}" ]; then
+    for i in {0..11}; do
+        if [ ! -z "${LOG_ARRAY[${i}]}" ]; then
             echo
-            echo " ${LOG_HEADING}: "
-            cat ${LOG_FILE}
-            echo " Total:   $(fHUMAN_READABLE_TIME ${CATEGORY_TIME[${SELECTION}]})"
+            echo -n " ${CAT_HEADING_ARRAY[${i}]}: "
+            echo -e "${LOG_ARRAY[${i}]}"
+            echo -e "   Total:   $(fHUMAN_READABLE_TIME ${CATEGORY_TIME[${i}]})"
         fi
     done
-    
-    echo -e "\n Your total unused time is: \n$(fHUMAN_READABLE_TIME $(($(date +%s) - NOW_NOW)))\n"
-    echo -e " Your current total time is: \n$(fHUMAN_READABLE_TIME $(($(date +%s) - START_TIME)))"
-    SELECTION=${SELECTION_HOLD} # to avoid accumulating time on option 12
+    echo -e "\n Your total unused time is:\n   $(fHUMAN_READABLE_TIME $(($(date +%s) - NOW_NOW)))\n"
+    echo -e " Your current total time is:\n   $(fHUMAN_READABLE_TIME $(($(date +%s) - START_TIME)))"
 }
 
 fSUMMARY_AND_QUIT() {
-    # 
+    # calculates the final time
     FINAL_TIME=$(($(date +%s) - START_TIME))
-    
-    # adds the final time to Administration time
-    echo -n " "${TIME_STAMP} >> Administration.out
-    
-    fTIME_CALC ${CATEGORY_TIME[1]}
-    CATEGORY_TIME[1]=${CALC_TIME_OUT}
-    
-    echo " $(fHUMAN_READABLE_TIME ${TIME_DIFF})" >> Administration.out
     ####
-    
+    ####
+    # adds the final time to category 1
+    TIME_STAMP_HOLD="${TIME_STAMP}"
+    fTIME_CALC ${CATEGORY_TIME[0]}
+    CATEGORY_TIME[0]=${CALC_TIME_OUT}
+    TIME_OUTPUT=$(fHUMAN_READABLE_TIME ${TIME_DIFF}) # TIME_DIFF is global and assigned in fTIME_CALC
+    LOG_ARRAY[0]=" ${LOG_ARRAY[0]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} " ## JH 
+    ####
+    ####
+    # iterates through the time history of each category and logs it into TIME_LOG
     clear
     echo -e "\n -- Time summary --\n"
-    for i in {1..12}; do
-        SELECTION=${i}; fCATEGORY_SELECT
-        if [ -f "${LOG_FILE}" ]; then
-            fLOG_TIME "$(fHUMAN_READABLE_TIME ${CATEGORY_TIME[$SELECTION]})"
+    for i in {0..11}; do
+        if [ ! -z "${LOG_ARRAY[${i}]}" ]; then
+            echo -ne "\n ${CAT_HEADING_ARRAY[${i}]}" >> ${TIME_LOG}
+            echo -e "${LOG_ARRAY[${i}]}" >> ${TIME_LOG}
+            echo -e "   Total-   $(fHUMAN_READABLE_TIME ${CATEGORY_TIME[${i}]})" >> ${TIME_LOG}
         fi
     done
-    
-    LOG_HEADING=""
-    LOG_FILE="TOTAL.out"
+    ####
+    ####
+    # logs total time, prints out TIME_LIOG, and waits for user input before exiting with status 0
     FINAL_HUMAN_READABLE_TIME=$(fHUMAN_READABLE_TIME ${FINAL_TIME})
-    echo " $(date +%H:%M:%S) ${FINAL_HUMAN_READABLE_TIME}" >> ${LOG_FILE} 
-    fLOG_TIME "${FINAL_HUMAN_READABLE_TIME}"
+    LOG_ARRAY[12]=$(echo " $(date +%H:%M:%S) ${FINAL_HUMAN_READABLE_TIME}")
+    echo -e "\n\n Total- ${FINAL_HUMAN_READABLE_TIME}\n\n" >> ${TIME_LOG}
     cat ${TIME_LOG}
-    echo
     read -p " Thanks for playing - hit enter to exit."
     echo
-    
-    
-    exit 1
-}
-
-fLOG_TIME() {
-    # Fills the time log with each time category total
-    # inputs are LOG_FILE and LOG_HEADING - no value returned
-    if [ -f ${LOG_FILE} ]; then
-        echo >> ${TIME_LOG}
-        echo ${LOG_HEADING} >> ${TIME_LOG}
-        cat ${LOG_FILE} >> ${TIME_LOG}
-        echo -e " Total-   ${1}" >> ${TIME_LOG}
-        echo >> ${TIME_LOG}
-        rm -f ${LOG_FILE}
-    fi
+    exit 0
 }
 
 fMAIN() {
+    ## set Variables ##
     NUM_CHECK='^[0-9]+$'
     PROGRAM_TITLE="================== Jason's Time Tracker ========="
-    # Sets up the initial variables
-    fUSER_TIME_CHECK
-
-    ## set Variables ##
+    fUSER_TIME_CHECK # Sets up the initial variables
     NOW_NOW=${START_TIME}
     HUMAN_TIME_OUT=" 0 Hour(s), 0 Minute(s), 0 Second(s)"
     HUMAN_TIME_IN=0
-    TIME_STAMP=$(date +%H:%M:%S)
+    TIME_STAMP=$(date +%T)
     TIME_MARKER[0]=${NOW_NOW}
     TIME_MARKER[1]=0
     TM_SWITCH_a=0
@@ -259,41 +204,69 @@ fMAIN() {
     CALC_TIME_OUT=''
     SELECTION=0
     CATEGORY_TIME=(0 0 0 0 0 0 0 0 0 0 0 0 0)
-    LOG_FILE=""
-    LOG_HEADING=""
-
+    CAT_HEADING_ARRAY=(
+    Administration
+    "Case Time"
+    Consult
+    Develpoment
+    KCS
+    "Lab TIme"
+    Meeting
+    RCA
+    Tools
+    "Training Del"
+    "Training Dev"
+    "Training Received"
+    )
+    ####
+    ####
+    # clears the screen, prints the title and creates the TIME_LOG file
     clear
     echo -e "${PROGRAM_TITLE}"
     TIME_LOG="Time_Log_$(date +%Y-%m-%d).txt"
     touch ${TIME_LOG} # creates the time log before main is run
     echo "__________________________________________________" >> ${TIME_LOG}
     echo " "$(date) >> ${TIME_LOG}
-    fCURRENT_TIMES
-    
-    #### MAIN PROGRAM ####
+    ####
+    ####
+    # loops as long as the selection does not equal 14
     while [ "${SELECTION}" != "14" ]; do
+        # prints the menu, waits for option selection, clears the screen,
+        # prints the title, and runs category check
         fMENU
         read -p " Selection: " -e SELECTION
         clear # clears the screen for each header iteration
-    echo -e "${PROGRAM_TITLE}"
+        echo -e "${PROGRAM_TITLE}" 
         fCATEGORY_SELECT
-        
+        ####
+        ####
+        # prints an error if the selection is non-numeric and loops again
+        # without doing anything else
         if ! [[ ${SELECTION} =~ ${NUM_CHECK} ]] ; then
             echo " Error, unknown selection, must be numeric" >&2
+        ####
+        ####
+        # makes sure the selection is in range and continues if it is or
+        # loops agian if not
         elif [ ${SELECTION} -gt 0 ] && [ ${SELECTION} -le 12 ]; then
-            echo -n " ${TIME_STAMP}" >> "${LOG_FILE}"
-            
-            fTIME_CALC ${CATEGORY_TIME[${SELECTION}]}
-            CATEGORY_TIME[${SELECTION}]=${CALC_TIME_OUT}
+            # passes the old timestamp to a hold variable because TIME_CALC redefines it
+            # and updates the total for the category selected
+            TIME_STAMP_HOLD="${TIME_STAMP}"
+            fTIME_CALC ${CATEGORY_TIME[$((SELECTION - 1))]}
+            CATEGORY_TIME[$((SELECTION - 1))]=${CALC_TIME_OUT}
+            ####
+            ####
+            # creates human readable output, stacks it in that category's output array, 
+            # prints that catogory's accumulated human-readable output, and prints the 
+            # current totals for all categories
             TIME_OUTPUT=$(fHUMAN_READABLE_TIME ${TIME_DIFF}) # TIME_DIFF is global and assigned in fTIME_CALC
-            SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n ${LOG_HEADING}: ${TIME_OUTPUT}")
-            
-            echo " ${TIME_OUTPUT} ">> ${LOG_FILE} 
+            SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n ${CAT_HEADING_ARRAY[$((SELECTION - 1))]}: ${TIME_OUTPUT}")
+            LOG_ARRAY[$((SELECTION - 1))]=" ${LOG_ARRAY[$((SELECTION - 1))]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} "
             echo "${SELECTION_OUTPUT}"
-            
             fCURRENT_TIMES
-        
-        # allows the array designations that are holding the time markers to switch places
+            ####
+            ####
+            # allows the array designations that are holding the time markers to switch places
             if [ ${TM_SWITCH_a} -eq 0 ]; then
                 TM_SWITCH_a=1
                 TM_SWITCH_b=0
