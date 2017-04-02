@@ -57,6 +57,17 @@
 #    - eliminated the need for fLOG_TIME                                            #
 #    - added comments to explain each line of code                                  #
 #                                                                                   #
+# timer-v8.10                                                                       #
+#  - Issue #16, Let the user define the categories                                  #
+#    - created timer.conf to give the user the ability to fill with their own       #
+#      categories                                                                   #
+#    - created fSET_SPACES which intakes categories and determines formatting       #
+#    - modified fMAIN and fMENU to accomodate timer.conf and fSET_SPACES            #
+#    - modified fCATEGORY_SELECT, fCURRENT_TIMES, and fSUMMARY_AND_QUIT to work     #
+#      with dynamic categories                                                      #
+#    - modified fCATEGORY_SELECT to take an argument instead of using global        #
+#    - changes created redundant selection checking which will need to be           #
+#      corrected in the next version                                                #
 #                                                                                   #
 #####################################################################################
 
@@ -77,31 +88,72 @@ fUSER_TIME_CHECK() {
     done
 }
 
+fSET_SPACES() {
+    ## usage:
+    ## fSET_SPACES $categoryIndexes CAT_HEADING_ARRAY[@]
+    unset menuOut
+    
+    ## takes categories in timer.config, numbers them, and
+    ## loads them into an output array
+    catNum=${1}
+    categoryArray=("${!2}")
+    for i in $(seq 0 $catNum); do
+        menuOut[$i]=" $((i+1))- ${categoryArray[$i]}"
+    done
+    menuOut[$((catNum+1))]=" r- Refresh"
+    # menuOut[$((catNum+2))]=" a- Add Category" ## JH future development
+    menuOut[$((catNum+2))]=" q- Summary and Quit"
+    
+    ## determines which menu item is the longest
+    spaceArrayInc=0; finalArg=0; for i in "${menuOut[@]}"; do
+        testArg=$(echo "${i}" | wc -c)
+        if [[ ${testArg} -gt ${finalArg} ]]; then
+            finalArg=${testArg}
+        fi
+    done; unset testArg
+    
+    ## determines the white space after each menu
+    ## item based on the logest menu item
+    spaceArrayInc=0; for i in "${menuOut[@]}"; do
+        menuItemSpacing[${spaceArrayInc}]=$(((finalArg) - $(echo "${i}" | wc -c)))
+        ((spaceArrayInc++))
+    done; unset spaceArrayInc finalArg
+    
+    ## adds the trailing spaces to the menu items
+    spaceArrayInc=0; for i in "${menuItemSpacing[@]}"; do
+        for j in `seq 1 ${i}`; do
+            MenuItemSpaced[${spaceArrayInc}]="${MenuItemSpaced[${spaceArrayInc}]} "
+        done
+        menuOut[${spaceArrayInc}]="${menuOut[${spaceArrayInc}]} ${MenuItemSpaced[${spaceArrayInc}]}" ## used as a global array
+        ((spaceArrayInc++))
+    done
+    unset spaceArrayInc catNum categoryArray menuItemSpacing MenuItemSpaced
+}
+
 fMENU() {
     # Prints the main menu
-    echo -e "\n \
-    \b\b\b\b1- Administration\t6-  Lab Time\t\t11- Training Dev\n \
-    \b\b\b\b2- Case Time\t\t7-  Meeting\t\t12- Training Received\n \
-    \b\b\b\b3- Consult\t\t8-  RCA\t\t\t13- Update Unused/Total Time\n \
-    \b\b\b\b4- Development\t\t9-  Tools\t\t14- Summary and Quit\n \
-    \b\b\b\b5- KCS\t\t\t10- Training Del\n"
+    # uses menuOut from fSET_SPACES
+    menuArray=("${menuOut[@]}")
+    echo
+    for i in {0..4}; do
+        printf "%s%s%s%s\n" "${menuArray[${i}]}" "${menuArray[$((i+5))]}" "${menuArray[$((i+10))]}" "${menuArray[$((i+15))]}"
+    done
+    echo
 }
 
 fCATEGORY_SELECT() {
-    # fills arguments CATEGORY_TIME, LOG_FILE, LOG_HEADING and  based on selection SELECTION
-    # input is SELECTION - returns full values above
-    # usage: read -p " Selection: " -e SELECTION; fCATEGORY_SELECT
-    case ${SELECTION} in
-        1|2|3|4|5|6|7|8|9|10|11|12)
-            ;;
-        13) # allows you to see how much time you have accumulated for each category
+    # fills arguments CATEGORY_TIME, LOG_FILE, LOG_HEADING and  based on selection selection
+    # input is selection - returns full values above
+    # usage: read -p " Selection: " -e selection; fCATEGORY_SELECT ${selection}
+    selection=${1}
+    case ${selection} in
+        r) # allows you to see how much time you have accumulated for each category
             fCURRENT_TIMES
             ;;
-        14) # prints out a summary and exits the scripts
+        q) # prints out a summary and exits the scripts
             fSUMMARY_AND_QUIT
             ;;
-        *) # anything other that 1 - 14 does nothing
-            echo -e "\n Error, unknown selection, Please select 1 - 14"
+        *) # error handling in fMAIN... will fix in later version ## JH 
             ;;
     esac
 }
@@ -140,7 +192,7 @@ fCURRENT_TIMES() {
     # uses global variable LOG_ARRAY, LOG_ARRAY, CATEGORY_TIME, NOW_NOW, and START_TIME
     # only displays information
     echo -ne "\n\t    == Recorded Totals =="
-    for i in {0..11}; do
+    for i in `seq 0 ${categoryIndexes}`; do 
         if [ ! -z "${LOG_ARRAY[${i}]}" ]; then
             echo
             echo -n " ${CAT_HEADING_ARRAY[${i}]}: "
@@ -162,13 +214,13 @@ fSUMMARY_AND_QUIT() {
     fTIME_CALC ${CATEGORY_TIME[0]}
     CATEGORY_TIME[0]=${CALC_TIME_OUT}
     TIME_OUTPUT=$(fHUMAN_READABLE_TIME ${TIME_DIFF}) # TIME_DIFF is global and assigned in fTIME_CALC
-    LOG_ARRAY[0]=" ${LOG_ARRAY[0]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} " ## JH 
+    LOG_ARRAY[0]=" ${LOG_ARRAY[0]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} "
     ####
     ####
     # iterates through the time history of each category and logs it into TIME_LOG
     clear
     echo -e "\n -- Time summary --\n"
-    for i in {0..11}; do
+    for i in `seq 0 ${categoryIndexes}`; do 
         if [ ! -z "${LOG_ARRAY[${i}]}" ]; then
             echo -ne "\n ${CAT_HEADING_ARRAY[${i}]}" >> ${TIME_LOG}
             echo -e "${LOG_ARRAY[${i}]}" >> ${TIME_LOG}
@@ -179,7 +231,7 @@ fSUMMARY_AND_QUIT() {
     ####
     # logs total time, prints out TIME_LIOG, and waits for user input before exiting with status 0
     FINAL_HUMAN_READABLE_TIME=$(fHUMAN_READABLE_TIME ${FINAL_TIME})
-    LOG_ARRAY[12]=$(echo " $(date +%H:%M:%S) ${FINAL_HUMAN_READABLE_TIME}")
+    LOG_ARRAY[${numOfCategories}]=$(echo " $(date +%H:%M:%S) ${FINAL_HUMAN_READABLE_TIME}")
     echo -e "\n\n Total- ${FINAL_HUMAN_READABLE_TIME}\n\n" >> ${TIME_LOG}
     cat ${TIME_LOG}
     read -p " Thanks for playing - hit enter to exit."
@@ -202,22 +254,12 @@ fMAIN() {
     TM_SWITCH_b=1
     CALC_TIME_IN=''
     CALC_TIME_OUT=''
-    SELECTION=0
-    CATEGORY_TIME=(0 0 0 0 0 0 0 0 0 0 0 0 0)
-    CAT_HEADING_ARRAY=(
-    Administration
-    "Case Time"
-    Consult
-    Develpoment
-    KCS
-    "Lab TIme"
-    Meeting
-    RCA
-    Tools
-    "Training Del"
-    "Training Dev"
-    "Training Received"
-    )
+    selection=0
+    source timer.conf || echo -e "\n Error, could not find timer.conf\n" 
+    numOfCategories=${#CAT_HEADING_ARRAY[@]}
+    categoryIndexes=$((numOfCategories - 1))
+    for i in `seq 0 $categoryIndexes`; do CATEGORY_TIME[$i]=0; done
+    fSET_SPACES ${categoryIndexes} CAT_HEADING_ARRAY[@]
     ####
     ####
     # clears the screen, prints the title and creates the TIME_LOG file
@@ -229,39 +271,41 @@ fMAIN() {
     echo " "$(date) >> ${TIME_LOG}
     ####
     ####
-    # loops as long as the selection does not equal 14
-    while [ "${SELECTION}" != "14" ]; do
+    # loops as long as the selection does not equal q
+    while [ "${selection}" != "q" ]; do
         # prints the menu, waits for option selection, clears the screen,
         # prints the title, and runs category check
         fMENU
-        read -p " Selection: " -e SELECTION
+        read -p " Selection: " -e selection
         clear # clears the screen for each header iteration
         echo -e "${PROGRAM_TITLE}" 
-        fCATEGORY_SELECT
+        fCATEGORY_SELECT ${selection}
+        if [[ ${selection} == "r" ]] ; then
+            continue
         ####
         ####
         # prints an error if the selection is non-numeric and loops again
         # without doing anything else
-        if ! [[ ${SELECTION} =~ ${NUM_CHECK} ]] ; then
-            echo " Error, unknown selection, must be numeric" >&2
+        elif ! [[ ${selection} =~ ${NUM_CHECK} ]] ; then
+            echo " Error, unknown selection" >&2
         ####
         ####
         # makes sure the selection is in range and continues if it is or
         # loops agian if not
-        elif [ ${SELECTION} -gt 0 ] && [ ${SELECTION} -le 12 ]; then
+        elif [ ${selection} -gt 0 ] && [ ${selection} -le ${numOfCategories} ]; then
             # passes the old timestamp to a hold variable because TIME_CALC redefines it
             # and updates the total for the category selected
             TIME_STAMP_HOLD="${TIME_STAMP}"
-            fTIME_CALC ${CATEGORY_TIME[$((SELECTION - 1))]}
-            CATEGORY_TIME[$((SELECTION - 1))]=${CALC_TIME_OUT}
+            fTIME_CALC ${CATEGORY_TIME[$((selection - 1))]}
+            CATEGORY_TIME[$((selection - 1))]=${CALC_TIME_OUT}
             ####
             ####
             # creates human readable output, stacks it in that category's output array, 
             # prints that catogory's accumulated human-readable output, and prints the 
             # current totals for all categories
             TIME_OUTPUT=$(fHUMAN_READABLE_TIME ${TIME_DIFF}) # TIME_DIFF is global and assigned in fTIME_CALC
-            SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n ${CAT_HEADING_ARRAY[$((SELECTION - 1))]}: ${TIME_OUTPUT}")
-            LOG_ARRAY[$((SELECTION - 1))]=" ${LOG_ARRAY[$((SELECTION - 1))]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} "
+            SELECTION_OUTPUT=$(echo -e "\n\t    == Most Recent ==\n ${CAT_HEADING_ARRAY[$((selection - 1))]}: ${TIME_OUTPUT}")
+            LOG_ARRAY[$((selection - 1))]=" ${LOG_ARRAY[$((selection - 1))]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} "
             echo "${SELECTION_OUTPUT}"
             fCURRENT_TIMES
             ####
