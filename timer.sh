@@ -69,6 +69,12 @@
 #    - changes created redundant selection checking which will need to be           #
 #      corrected in the next version                                                #
 #                                                                                   #
+# timer-v8.11                                                                       #
+#  - added a way to add projects or cateories                                       #
+#                                                                                   #
+# timer-v8.12                                                                       #
+#  - changed exit behavior to ask which category to add final time to               #
+#                                                                                   #
 #####################################################################################
 
 fUSER_TIME_CHECK() {
@@ -101,8 +107,8 @@ fSET_SPACES() {
         menuOut[$i]=" $((i+1))- ${categoryArray[$i]}"
     done
     menuOut[$((catNum+1))]=" r- Refresh"
-    # menuOut[$((catNum+2))]=" a- Add Category" ## JH future development
-    menuOut[$((catNum+2))]=" q- Summary and Quit"
+    menuOut[$((catNum+2))]=" a- Add Category" ## JH future development
+    menuOut[$((catNum+3))]=" q- Summary and Quit"
     
     ## determines which menu item is the longest
     spaceArrayInc=0; finalArg=0; for i in "${menuOut[@]}"; do
@@ -150,6 +156,9 @@ fCATEGORY_SELECT() {
         r) # allows you to see how much time you have accumulated for each category
             fCURRENT_TIMES
             ;;
+	    a) # Add a category
+		    fADD_CATEGORY
+			;;
         q) # prints out a summary and exits the scripts
             fSUMMARY_AND_QUIT
             ;;
@@ -204,17 +213,36 @@ fCURRENT_TIMES() {
     echo -e " Your current total time is:\n   $(fHUMAN_READABLE_TIME $(($(date +%s) - START_TIME)))"
 }
 
+fADD_CATEGORY() {
+    # adds a category live
+	echo -e "\n\t    == Add a Project =="
+	read -p ": " -e newProject
+	topOfFile="$(head -n -1 timer.conf)"
+	endOFFile=")"
+	echo -e "${topOfFile}\n\"${newProject}\"\n${endOFFile}" > timer.conf
+	source timer.conf
+	fINIT_CAT_ARGS
+}
+
 fSUMMARY_AND_QUIT() {
     # calculates the final time
     FINAL_TIME=$(($(date +%s) - START_TIME))
     ####
     ####
     # adds the final time to category 1
+	fMENU
+	while true; do
+	    read -p "  Exiting - enter final category: " -e final_category
+		final_index=$((final_category - 1))
+		if [[ ${final_category} =~ ${NUM_CHECK} ]] && [ ${final_category} -gt 0 ] && [ ${final_category} -le ${numOfCategories} ]; then
+		    break
+		fi
+	done
     TIME_STAMP_HOLD="${TIME_STAMP}"
-    fTIME_CALC ${CATEGORY_TIME[0]}
-    CATEGORY_TIME[0]=${CALC_TIME_OUT}
+    fTIME_CALC ${CATEGORY_TIME[$final_index]}
+    CATEGORY_TIME[$final_index]=${CALC_TIME_OUT}
     TIME_OUTPUT=$(fHUMAN_READABLE_TIME ${TIME_DIFF}) # TIME_DIFF is global and assigned in fTIME_CALC
-    LOG_ARRAY[0]=" ${LOG_ARRAY[0]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} "
+    LOG_ARRAY[$final_index]=" ${LOG_ARRAY[$final_index]}\n   ${TIME_STAMP_HOLD} ${TIME_OUTPUT} "
     ####
     ####
     # iterates through the time history of each category and logs it into TIME_LOG
@@ -239,8 +267,28 @@ fSUMMARY_AND_QUIT() {
     exit 0
 }
 
+fINIT_CAT_ARGS() {
+    numOfCategories=${#CAT_HEADING_ARRAY[@]}
+	categoryIndexes=$((numOfCategories - 1))
+	if $TIMES_INIT; then
+	    # This should run every time after the first time
+	    CATEGORY_TIME[$categoryIndexes]=0
+	else
+	    # this will run the first time this function is called
+	    for i in `seq 0 $categoryIndexes`; do CATEGORY_TIME[$i]=0; done
+		TIMES_INIT=true
+    fi
+	fSET_SPACES ${categoryIndexes} CAT_HEADING_ARRAY[@]
+}
+
 fMAIN() {
     ## set Variables ##
+	if [[ -f timer.conf ]]; then
+	    source timer.conf
+    else
+	    echo -e "\n Error, could not find timer.conf\n"
+		exit 1
+    fi
     NUM_CHECK='^[0-9]+$'
     PROGRAM_TITLE="================== Jason's Time Tracker ========="
     fUSER_TIME_CHECK # Sets up the initial variables
@@ -255,11 +303,12 @@ fMAIN() {
     CALC_TIME_IN=''
     CALC_TIME_OUT=''
     selection=0
-    source timer.conf || echo -e "\n Error, could not find timer.conf\n" 
-    numOfCategories=${#CAT_HEADING_ARRAY[@]}
-    categoryIndexes=$((numOfCategories - 1))
-    for i in `seq 0 $categoryIndexes`; do CATEGORY_TIME[$i]=0; done
-    fSET_SPACES ${categoryIndexes} CAT_HEADING_ARRAY[@]
+	TIMES_INIT=false
+	fINIT_CAT_ARGS
+    ##JH numOfCategories=${#CAT_HEADING_ARRAY[@]}
+    ##JH categoryIndexes=$((numOfCategories - 1))
+    ##JH for i in `seq 0 $categoryIndexes`; do CATEGORY_TIME[$i]=0; done
+    ##JH fSET_SPACES ${categoryIndexes} CAT_HEADING_ARRAY[@]
     ####
     ####
     # clears the screen, prints the title and creates the TIME_LOG file
@@ -280,7 +329,7 @@ fMAIN() {
         clear # clears the screen for each header iteration
         echo -e "${PROGRAM_TITLE}" 
         fCATEGORY_SELECT ${selection}
-        if [[ ${selection} == "r" ]] ; then
+        if [[ ${selection} == "r" ]] || [[ ${selection} == "a" ]]; then
             continue
         ####
         ####
