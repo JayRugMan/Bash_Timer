@@ -4,6 +4,27 @@ This script tracks time for deltas for specified category
 '''
 
 from datetime import datetime
+from datetime import timedelta
+
+
+class TimedCategories:
+    '''Class to set up the list of time categories based on tiemrpy.conf'''
+    def __init__(self):
+        self.file = list(open('timerpy.conf', 'r'))
+        self.times = 
+    def start_times(self):
+        for line in range(len(self.file)):
+            if '#' not in self.file[line]:
+                self.times[self.file[line].rstrip('\n')] = 0
+    def add_time(self, cat_key, time_val):
+        self.times[cat_key] += time_val
+
+
+def make_human_readable(time_in_seconds):
+    str_format = '{} hour(s), {} minute(s), {} second(s)'
+    time_list = str(timedelta(seconds=time_in_seconds)).split(':')
+    time_as_strng = str_format.format(*time_list)
+    return time_as_strng
 
 
 def get_start_time(prog_title):
