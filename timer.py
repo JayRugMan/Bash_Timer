@@ -15,7 +15,7 @@ class TimedCategories:
             self.file_lst = list(self.file)
         self.times = {}
         self.options = {}
-    def start_times(self):
+    ##def start_times(self):
         '''takes time categories and creates a dictionary of
         categoies as well as a dictionary of options'''
         iterator = 1
@@ -83,12 +83,12 @@ def Get_Start_Time(prog_title):
     return start_dt
 
 
-def The_Menu(prog_title, categories):
+def The_Menu(prog_title, categories, start_time):
     '''Prints out a formatted menu'''
     os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
     output_list = [
         prog_title,
-        'Start Time: {}',
+        'Start Time: {}'.format(start_time),
         'Time After 8 Hours: {}',
         '',
         '== Time Totals ==',
