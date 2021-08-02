@@ -9,15 +9,16 @@ from datetime import timedelta
 
 
 class TimedCategories:
-    '''Class to set up the list of time categories based on timerpy.conf'''
-    def __init__(self):
-        with open('timerpy.conf', 'r') as self.file:
+    '''Class to set up the dictionary of time categories based on
+    timerpy.conf in current working directory. this file is required
+    to run this program. see README for detials'''
+    def __init__(self, the_file):
+        with open(the_file, 'r') as self.file:
             self.file_lst = list(self.file)
         self.times = {}
         self.options = {}
-    ##def start_times(self):
-        '''takes time categories and creates a dictionary of
-        categoies as well as a dictionary of options'''
+        # Takes time categories and creates a dictionary of
+        # categoies as well as a dictionary of options
         iterator = 1
         for line in self.file_lst:
             if '#' not in line:
@@ -37,15 +38,66 @@ class TimedCategories:
         self.times[cat_key] += time_val
 
 
-def Make_Human_Readable(time_in_seconds):
+class MenuOutputList:
+    '''Class defining the menu outout list to be printed'''
+    def __init__(self, title, categories, start_time):
+        self.title = title
+        self.categories = categories
+        self.start_time = start_time
+        self.end_time = self.start_time + timedelta(hours=8)
+        self.et_w_lunch = (self.end_time +
+            timedelta(seconds=self.categories.times['Lunch'])
+        )
+        self.final_lst = [
+            self.title,
+            'Start time: {}'.format(self.start_time),
+            'Time after 8 hours: {}'.format(self.end_time.time()),
+            '8 Hours plus lunch: {}'.format(self.et_w_lunch.time()),
+            '',
+            '== Time Totals ==',
+            '',
+            '== Options =='
+        ]
+    def ins_times(self):
+        '''Inserts the times into the menu print list'''
+        tt_ins = [
+            i+1 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
+        ][0]
+        # Inserts centered table into output list
+        for cat, time in self.categories.times.items():
+            self.final_lst.insert(tt_ins, '-- {} --'.format(cat))
+            tt_ins += 1
+            self.final_lst.insert(
+                tt_ins, '{}\n'.format(make_human_readable(time))
+            )
+            tt_ins += 1
+        del tt_ins
+    def ins_options(self):
+        '''Inserts the categories as numbered options, as well
+        as other options defined by the TimedCategories class,
+        into the menu print list'''
+        opt_tbl = '{0:<3}{1:.>22}'  # makes options box 25 wide in justified format
+        # line number for insterting uptions
+        o_ins = [
+            i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
+        ][0]
+        # inserts justified table into output list
+        for opt, cat in self.categories.options.items():
+            self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
+            o_ins += 1
+        del opt_tbl, o_ins
+
+
+def make_human_readable(time_in_seconds):
     '''Takes seconds and returns formatted string'''
-    str_format = '{} hour(s), {} minute(s), {} second(s)'
+    str_format = '{} Hr(s), {} Min(s), {} Sec(s)'
     time_list = str(timedelta(seconds=time_in_seconds)).split(':')
     time_as_strng = str_format.format(*time_list)
+    del str_format, time_list
     return time_as_strng
 
 
-def Get_Start_Time(prog_title):
+def get_start_time(prog_title):
     '''
     Gets start time based on either user input or function start time
     '''
@@ -80,24 +132,32 @@ def Get_Start_Time(prog_title):
         print('-- Error - enter a valid time as suggested')
     start_dt_str = '{} {}'.format(start_d_str, start_t_str)
     start_dt = datetime.strptime(start_dt_str, '%Y %m %d %H %M %S')
+    del start_d_str, input_str_list, start_t_str, hrs, mins, secs, start_dt_str
     return start_dt
 
 
-def The_Menu(prog_title, categories, start_time):
+def print_menu(prog_title, categories, start_time):
     '''Prints out a formatted menu'''
     os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
-    output_list = [
-        prog_title,
-        'Start Time: {}'.format(start_time),
-        'Time After 8 Hours: {}',
-        '',
-        '== Time Totals ==',
-        '',
-        '== Options =='
-    ]
-    opt_tbl = '{0:<3}{1:.>22}'   # makes options box 21 wide in justified format
-    # inserts justified table into output list
-    for option, category in sorted(categories.options.items(), reverse=True):
-        output_list.insert(7, opt_tbl.format(option, '  ' + category))
-    for line in output_list:  # Prints each line cetered from output_list
+    output_list = MenuOutputList(prog_title, categories, start_time)
+    output_list.ins_times()
+    output_list.ins_options()
+    ## Prints each line centered from output_list
+    for line in output_list.final_lst:
         print('{0:^61}'.format(line))
+    del output_list
+
+
+def main():
+    '''Main Event'''
+    title = "=== Jason's TimeCard ==="
+    cats = TimedCategories('timerpy.conf')
+    beginning = get_start_time(title)
+    ### while True:
+    print_menu(title, cats, beginning)
+    ### Get option selection
+    ### if summary and quit, sum_quit()
+    ### if refresh, refresh print_menu()
+
+
+main()
