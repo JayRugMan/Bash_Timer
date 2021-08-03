@@ -65,12 +65,13 @@ class MenuOutputList:
         ][0]
         # Inserts centered table into output list
         for cat, time in self.categories.times.items():
-            self.final_lst.insert(tt_ins, '-- {} --'.format(cat))
-            tt_ins += 1
-            self.final_lst.insert(
-                tt_ins, '{}\n'.format(make_human_readable(time))
-            )
-            tt_ins += 1
+            if time > 0:
+                self.final_lst.insert(tt_ins, '-- {} --'.format(cat))
+                tt_ins += 1
+                self.final_lst.insert(
+                    tt_ins, '{}\n'.format(make_human_readable(time))
+                )
+                tt_ins += 1
         del tt_ins
     def ins_options(self):
         '''Inserts the categories as numbered options, as well
@@ -113,7 +114,7 @@ def get_start_time(prog_title):
     for line in input_str_list:
         print('{0:^61}'.format(line))
     while True:
-        start_t_str = input(':')
+        start_t_str = input(': ')
         # Sets start time as now if not entered and exits loop
         if not start_t_str:
             start_t_str = datetime.now().strftime('%H %M %S')
@@ -148,13 +149,25 @@ def print_menu(prog_title, categories, start_time):
     del output_list
 
 
+def add_time_to_category(categories, start_time):
+    '''If number input, then time is added to the specified category'''
+    
+
+
 def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
     cats = TimedCategories('timerpy.conf')
     beginning = get_start_time(title)
+    selection = ''
     ### while True:
     print_menu(title, cats, beginning)
+    selection = input('/n: ')
+    try:
+        selection = int(selection)
+        add_time_to_category(selection, cats, beginning)
+    except ValueError:
+        ras_selection(title, selection, cats, beginning)
     ### Get option selection
     ### if summary and quit, sum_quit()
     ### if refresh, refresh print_menu()
