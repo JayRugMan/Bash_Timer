@@ -13,7 +13,7 @@ class TimedCategories:
     '''Class to set up the dictionary of time categories based on
     timerpy.conf in current working directory. this file is required
     to run this program. see README for detials'''
-    def __init__(self, the_file):
+    def __init__(self, the_file, start_time):
         try:
             with open(the_file, 'r') as file:
                 self.file_lst = list(file)
@@ -23,8 +23,10 @@ class TimedCategories:
             )
         self.times = {}
         self.options = {}
-        # Takes time categories and creates a dictionary of
-        # categories as well as a dictionary of options
+        self.rolling_time = start_time
+        self.end_time = start_time + timedelta(hours=8)
+        # Takes time categories and creates a
+        # dictionary of categories and one of options
         iterator = 1
         for line in self.file_lst:
             if '#' not in line:
@@ -32,17 +34,18 @@ class TimedCategories:
                 self.times[line] = 0
                 self.options[str(iterator)] = line
                 iterator += 1
-        del iterator
         self.options.update({
             'r':'Refresh',
             'a':'Add a Category',
             's':'Summarize and Quit'
         })
-    def add_time(self, option, start_time):
+    def add_time(self, option):
         '''adds time specified by the val argument
         to the category specifed by the cat key arg'''
         key = self.options[option]
-        time_2_add = int((datetime.now() - start_time).total_seconds())
+        right_now = datetime.now()
+        time_2_add = int((right_now - self.rolling_time).total_seconds())
+        self.rolling_time = right_now
         self.times[key] += time_2_add
     def add_category(self, the_file):
         '''opens file to append new category as provided by
@@ -78,27 +81,33 @@ class TimedCategories:
 class MenuOutputList:
     '''Class defining the menu outout list to be printed'''
     def __init__(self, prog_title, cats, start_time):
-        self.prog_title = prog_title
         self.cats = cats
-        self.start_time = start_time
-        self.end_time = self.start_time + timedelta(hours=8)
-        self.et_w_lunch = (self.end_time +
+        et_w_lunch = (cats.end_time +
             timedelta(seconds=self.cats.times['Lunch'])
         )
+        # Gets unused time and puts in human-readable string
+        unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
+        uu_time_str = make_human_readable(unused_sec)
+        # Adds up total time
+        t_time_str = make_human_readable(sum(self.cats.times.values()))
         self.final_lst = [
-            self.prog_title,
-            'Start time: {}'.format(self.start_time),
-            'Time after 8 hours: {}'.format(self.end_time.time()),
-            '8 Hours plus lunch: {}'.format(self.et_w_lunch.time()),
+            prog_title,
+            'Start time: {}'.format(start_time),
+            'Time after 8 hours: {}'.format(cats.end_time.time()),
+            '8 Hours plus lunch: {}'.format(et_w_lunch.time()),
             '',
             '== Time Totals ==',
+            'Total unused time: ' + uu_time_str,
+            '',
+            'Total time: ' + t_time_str,
             '',
             '== Options =='
         ]
     def ins_times(self):
-        '''Inserts the times into the menu print list'''
+        '''Inserts the times into the menu print 
+        list three lines after subheading'''
         tt_ins = [
-            i+1 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
+            i+3 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
         ][0]
         # Inserts centered table into output list
         for cat, time in self.cats.times.items():
@@ -109,7 +118,7 @@ class MenuOutputList:
                     tt_ins, '{}\n'.format(make_human_readable(time))
                 )
                 tt_ins += 1
-        del tt_ins
+        ##JH self.final_lst.insert(tt_ins, '')
     def ins_options(self):
         '''Inserts the categories as numbered options, as well
         as other options defined by the TimedCategories class,
@@ -123,13 +132,12 @@ class MenuOutputList:
         for opt, cat in self.cats.options.items():
             self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
             o_ins += 1
-        del opt_tbl, o_ins
 
 
 def make_human_readable(time_in_seconds):
     '''Takes seconds and returns formatted string'''
     str_format = '{} Hr(s), {} Min(s), {} Sec(s)'
-    time_list = str(timedelta(seconds=time_in_seconds)).split(':')
+    time_list = str(timedelta(seconds=int(time_in_seconds))).split(':')
     time_as_strng = str_format.format(*time_list)
     del str_format, time_list
     return time_as_strng
@@ -190,8 +198,8 @@ def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
     conf_file = 'timerpy.conf'
-    categories = TimedCategories(conf_file)  # checks for conf file and reads
     beginning = get_start_time(title)
+    categories = TimedCategories(conf_file, beginning)  # checks for conf file and reads
     while True:
         print_menu(title, categories, beginning)
         while True:
@@ -200,10 +208,10 @@ def main():
                 break
         try:
             selection = int(selection)
-            categories.add_time(str(selection), beginning)
+            categories.add_time(str(selection))
             continue
         except ValueError:
-            if selection == 'r':
+            if selection == 'r':  # refreshes menu with updated info
                 continue
             if selection == 'a':
                 categories.add_category(conf_file)  # will modify specified file
