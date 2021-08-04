@@ -4,6 +4,7 @@ This script tracks time for deltas for specified category
 '''
 
 import os
+import sys
 from datetime import datetime
 from datetime import timedelta
 
@@ -13,12 +14,17 @@ class TimedCategories:
     timerpy.conf in current working directory. this file is required
     to run this program. see README for detials'''
     def __init__(self, the_file):
-        with open(the_file, 'r') as self.file:
-            self.file_lst = list(self.file)
+        try:
+            with open(the_file, 'r') as file:
+                self.file_lst = list(file)
+        except FileNotFoundError:
+            sys.exit(
+                '{} not found. please refer to the README'.format(the_file)
+            )
         self.times = {}
         self.options = {}
         # Takes time categories and creates a dictionary of
-        # categoies as well as a dictionary of options
+        # categories as well as a dictionary of options
         iterator = 1
         for line in self.file_lst:
             if '#' not in line:
@@ -32,24 +38,55 @@ class TimedCategories:
             'a':'Add a Category',
             's':'Summarize and Quit'
         })
-    def add_time(self, cat_key, time_val):
+    def add_time(self, option, start_time):
         '''adds time specified by the val argument
         to the category specifed by the cat key arg'''
-        self.times[cat_key] += time_val
+        key = self.options[option]
+        time_2_add = int((datetime.now() - start_time).total_seconds())
+        self.times[key] += time_2_add
+    def add_category(self, the_file):
+        '''opens file to append new category as provided by
+        user when prompted, then adds the new category to
+        the times and options dictionaries'''
+        new_category = input('Please enter the new catetory: ')
+        # adds the new category to the py.conf file
+        with open(the_file, 'a') as file:
+            file.write(new_category + '\n')
+        # adds new catetory to times dict with 0 time
+        self.times[new_category] = 0
+        # inserts new category to options dictionary
+        new_opt_num = 1
+        for option_key in self.options:
+            try:
+                if int(option_key) == new_opt_num:
+                    new_opt_num += 1
+            except ValueError:
+                continue
+        num_items_lst = []
+        str_items_lst = []
+        for key, val in self.options.items():
+            try:
+                tosser = int(key)  # this just to test for numbered option
+                num_items_lst.append((key, val))
+            except ValueError:
+                str_items_lst.append((key, val))
+        del tosser
+        num_items_lst.append((str(new_opt_num), new_category))
+        self.options = dict(num_items_lst + str_items_lst)
 
 
 class MenuOutputList:
     '''Class defining the menu outout list to be printed'''
-    def __init__(self, title, categories, start_time):
-        self.title = title
-        self.categories = categories
+    def __init__(self, prog_title, cats, start_time):
+        self.prog_title = prog_title
+        self.cats = cats
         self.start_time = start_time
         self.end_time = self.start_time + timedelta(hours=8)
         self.et_w_lunch = (self.end_time +
-            timedelta(seconds=self.categories.times['Lunch'])
+            timedelta(seconds=self.cats.times['Lunch'])
         )
         self.final_lst = [
-            self.title,
+            self.prog_title,
             'Start time: {}'.format(self.start_time),
             'Time after 8 hours: {}'.format(self.end_time.time()),
             '8 Hours plus lunch: {}'.format(self.et_w_lunch.time()),
@@ -64,7 +101,7 @@ class MenuOutputList:
             i+1 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
         ][0]
         # Inserts centered table into output list
-        for cat, time in self.categories.times.items():
+        for cat, time in self.cats.times.items():
             if time > 0:
                 self.final_lst.insert(tt_ins, '-- {} --'.format(cat))
                 tt_ins += 1
@@ -83,7 +120,7 @@ class MenuOutputList:
             i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
         ][0]
         # inserts justified table into output list
-        for opt, cat in self.categories.options.items():
+        for opt, cat in self.cats.options.items():
             self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
             o_ins += 1
         del opt_tbl, o_ins
@@ -108,7 +145,7 @@ def get_start_time(prog_title):
         prog_title,
         '',
         'Enter start time below in 24-hour format as hh mm ss',
-        ' or simply hit enter to continue with current time',
+        'or simply hit enter to continue with current time',
         ''
     ]
     for line in input_str_list:
@@ -137,10 +174,10 @@ def get_start_time(prog_title):
     return start_dt
 
 
-def print_menu(prog_title, categories, start_time):
+def print_menu(prog_title, cats, start_time):
     '''Prints out a formatted menu'''
     os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
-    output_list = MenuOutputList(prog_title, categories, start_time)
+    output_list = MenuOutputList(prog_title, cats, start_time)
     output_list.ins_times()
     output_list.ins_options()
     ## Prints each line centered from output_list
@@ -149,25 +186,29 @@ def print_menu(prog_title, categories, start_time):
     del output_list
 
 
-def add_time_to_category(categories, start_time):
-    '''If number input, then time is added to the specified category'''
-    
-
-
 def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
-    cats = TimedCategories('timerpy.conf')
+    conf_file = 'timerpy.conf'
+    categories = TimedCategories(conf_file)  # checks for conf file and reads
     beginning = get_start_time(title)
-    selection = ''
-    ### while True:
-    print_menu(title, cats, beginning)
-    selection = input('/n: ')
-    try:
-        selection = int(selection)
-        add_time_to_category(selection, cats, beginning)
-    except ValueError:
-        ras_selection(title, selection, cats, beginning)
+    while True:
+        print_menu(title, categories, beginning)
+        while True:
+            selection = input('\n: ')
+            if selection in categories.options:
+                break
+        try:
+            selection = int(selection)
+            categories.add_time(str(selection), beginning)
+            continue
+        except ValueError:
+            if selection == 'r':
+                continue
+            if selection == 'a':
+                categories.add_category(conf_file)  # will modify specified file
+            #if selection == 's':
+                #sum_and_quit(title, categories)
     ### Get option selection
     ### if summary and quit, sum_quit()
     ### if refresh, refresh print_menu()
