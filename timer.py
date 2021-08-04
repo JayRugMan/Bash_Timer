@@ -23,7 +23,8 @@ class TimedCategories:
             )
         self.times = {}
         self.options = {}
-        self.rolling_time = start_time
+        self.beginning = start_time
+        self.rolling_time = self.beginning
         self.end_time = start_time + timedelta(hours=8)
         # Takes time categories and creates a
         # dictionary of categories and one of options
@@ -78,9 +79,16 @@ class TimedCategories:
         self.options = dict(num_items_lst + str_items_lst)
 
 
+class Summary:
+    '''Creates an object for the file output and
+    methods to print to screen and write to file'''
+    def __init__(self, cats):
+    
+
+
 class MenuOutputList:
     '''Class defining the menu outout list to be printed'''
-    def __init__(self, prog_title, cats, start_time):
+    def __init__(self, prog_title, cats):
         self.cats = cats
         et_w_lunch = (cats.end_time +
             timedelta(seconds=self.cats.times['Lunch'])
@@ -92,7 +100,7 @@ class MenuOutputList:
         t_time_str = make_human_readable(sum(self.cats.times.values()))
         self.final_lst = [
             prog_title,
-            'Start time: {}'.format(start_time),
+            'Start time: {}'.format(cats.beginning),
             'Time after 8 hours: {}'.format(cats.end_time.time()),
             '8 Hours plus lunch: {}'.format(et_w_lunch.time()),
             '',
@@ -182,10 +190,10 @@ def get_start_time(prog_title):
     return start_dt
 
 
-def print_menu(prog_title, cats, start_time):
+def print_menu(prog_title, cats):
     '''Prints out a formatted menu'''
     os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
-    output_list = MenuOutputList(prog_title, cats, start_time)
+    output_list = MenuOutputList(prog_title, cats)
     output_list.ins_times()
     output_list.ins_options()
     ## Prints each line centered from output_list
@@ -201,7 +209,7 @@ def main():
     beginning = get_start_time(title)
     categories = TimedCategories(conf_file, beginning)  # checks for conf file and reads
     while True:
-        print_menu(title, categories, beginning)
+        print_menu(title, categories)
         while True:
             selection = input('\n: ')
             if selection in categories.options:
