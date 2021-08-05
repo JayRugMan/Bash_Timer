@@ -21,6 +21,9 @@ will be ignored, spaces are fine, quotes are not necessary, and the EOL characte
 should be \n (Unix style) - Maybe I'll make it work with /r/n or /r for Windows 
 or Mac later... maybe... 
 
+Also note, the code is written to show eod considering "Lunch," so that category 
+is necessary in the current version
+
 # Categories
 Some category
 Project 2

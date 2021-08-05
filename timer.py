@@ -79,43 +79,62 @@ class TimedCategories:
         self.options = dict(num_items_lst + str_items_lst)
 
 
-class Summary:
-    '''Creates an object for the file output and
-    methods to print to screen and write to file'''
-    def __init__(self, cats):
-    
-
-
-class MenuOutputList:
-    '''Class defining the menu outout list to be printed'''
+class TheOutput:
+    '''Class defining the menu or summary outout to be printed'''
     def __init__(self, prog_title, cats):
+        '''starts the basic structure of the program output'''
         self.cats = cats
-        et_w_lunch = (cats.end_time +
-            timedelta(seconds=self.cats.times['Lunch'])
-        )
-        # Gets unused time and puts in human-readable string
-        unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
-        uu_time_str = make_human_readable(unused_sec)
         # Adds up total time
         t_time_str = make_human_readable(sum(self.cats.times.values()))
         self.final_lst = [
             prog_title,
-            'Start time: {}'.format(cats.beginning),
-            'Time after 8 hours: {}'.format(cats.end_time.time()),
-            '8 Hours plus lunch: {}'.format(et_w_lunch.time()),
+            'Start time: {}'.format(self.cats.beginning),
             '',
             '== Time Totals ==',
-            'Total unused time: ' + uu_time_str,
             '',
             'Total time: ' + t_time_str,
-            '',
-            '== Options =='
+            ''
         ]
+    def ins_menu_info(self):
+        '''Inserts components for menu output'''
+        # Gets unused time and puts in human-readable string
+        unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
+        uu_time_str = make_human_readable(unused_sec)
+        # Calculates end of day considering lunch isn't included in full day
+        # PER CURRENT VERSION, "Lunch" IS A NECESSARY CATEGORY (See README)
+        et_w_lunch = (self.cats.end_time +
+            timedelta(seconds=self.cats.times['Lunch'])
+        )
+        eod = 'Time after 8 hours: {}'.format(self.cats.end_time.time())
+        eod_w_lnch = '8 Hours plus lunch: {}'.format(et_w_lunch.time())
+        unused_str = 'Total unused time: ' + uu_time_str
+        opts_heading = '== Options =='
+        self.final_lst.insert(2, eod)
+        self.final_lst.insert(3, eod_w_lnch)
+        # Determines the line just below "Total time" for unused time
+        unused_ins = [
+            i for i, s in enumerate(self.final_lst) if 'Total time' in s
+        ][0]
+        self.final_lst.insert(unused_ins, unused_str)
+        self.final_lst.insert(10, opts_heading)
+        #
+        # Inserts the categories as numbered options, as well
+        # as other options defined by the TimedCategories class,
+        # into the menu print list
+        opt_tbl = '{0:<3}{1:.>22}'  # makes options box 25 wide in justified format
+        # Determines line number for insterting uptions
+        o_ins = [
+            i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
+        ][0]
+        # inserts justified table into output list
+        for opt, cat in self.cats.options.items():
+            self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
+            o_ins += 1
+        self.final_lst.insert(o_ins, '')
     def ins_times(self):
-        '''Inserts the times into the menu print 
-        list three lines after subheading'''
+        '''Inserts the times into the output after sub-heading Time Totals'''
         tt_ins = [
-            i+3 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
+            i+2 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
         ][0]
         # Inserts centered table into output list
         for cat, time in self.cats.times.items():
@@ -126,20 +145,21 @@ class MenuOutputList:
                     tt_ins, '{}\n'.format(make_human_readable(time))
                 )
                 tt_ins += 1
-        ##JH self.final_lst.insert(tt_ins, '')
-    def ins_options(self):
-        '''Inserts the categories as numbered options, as well
-        as other options defined by the TimedCategories class,
-        into the menu print list'''
-        opt_tbl = '{0:<3}{1:.>22}'  # makes options box 25 wide in justified format
-        # line number for insterting uptions
-        o_ins = [
-            i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
-        ][0]
-        # inserts justified table into output list
-        for opt, cat in self.cats.options.items():
-            self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
-            o_ins += 1
+    def print_menu(self):
+        '''Prints out a formatted menu'''
+        os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+        self.ins_menu_info()
+        self.ins_times()
+        ## Prints each line centered from output_list
+        for line in self.final_lst:
+            print('{0:^61}'.format(line))
+    def print_summary(self):
+        '''prints summary and records to a file'''
+        os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+        self.ins_times()
+        ## Prints each line centered from output_list
+        for line in self.final_lst:
+            print('{0:^61}'.format(line))
 
 
 def make_human_readable(time_in_seconds):
@@ -190,16 +210,16 @@ def get_start_time(prog_title):
     return start_dt
 
 
-def print_menu(prog_title, cats):
-    '''Prints out a formatted menu'''
-    os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
-    output_list = MenuOutputList(prog_title, cats)
-    output_list.ins_times()
-    output_list.ins_options()
-    ## Prints each line centered from output_list
-    for line in output_list.final_lst:
-        print('{0:^61}'.format(line))
-    del output_list
+##JH    def print_menu(prog_title, cats):
+##JH        '''Prints out a formatted menu'''
+##JH        os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+##JH        output_list = MenuOutputList(prog_title, cats)
+##JH        output_list.ins_times()
+##JH        output_list.ins_options()
+##JH        ## Prints each line centered from output_list
+##JH        for line in output_list.final_lst:
+##JH            print('{0:^61}'.format(line))
+##JH        del output_list
 
 
 def main():
@@ -209,9 +229,10 @@ def main():
     beginning = get_start_time(title)
     categories = TimedCategories(conf_file, beginning)  # checks for conf file and reads
     while True:
-        print_menu(title, categories)
+        menu = TheOutput(title, categories)
+        menu.print_menu()
         while True:
-            selection = input('\n: ')
+            selection = input(': ')
             if selection in categories.options:
                 break
         try:
@@ -221,13 +242,11 @@ def main():
         except ValueError:
             if selection == 'r':  # refreshes menu with updated info
                 continue
-            if selection == 'a':
+            if selection == 'a':  # add a category
                 categories.add_category(conf_file)  # will modify specified file
-            #if selection == 's':
-                #sum_and_quit(title, categories)
-    ### Get option selection
-    ### if summary and quit, sum_quit()
-    ### if refresh, refresh print_menu()
+            if selection == 's':  # Summary and quit
+                summary = TheOutput(title, categories)
+                summary.print_summary()
 
 
 main()
