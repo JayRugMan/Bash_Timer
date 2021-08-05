@@ -5,6 +5,7 @@ This script tracks time for deltas for specified category
 
 import os
 import sys
+from calendar import day_abbr
 from datetime import datetime
 from datetime import timedelta
 
@@ -24,6 +25,9 @@ class TimedCategories:
         self.times = {}
         self.options = {}
         self.beginning = start_time
+        self.beg_str = day_abbr[self.beginning.weekday()] +\
+            ' ' +\
+            str(self.beginning)
         self.rolling_time = self.beginning
         self.end_time = start_time + timedelta(hours=8)
         # Takes time categories and creates a
@@ -88,7 +92,7 @@ class TheOutput:
         t_time_str = make_human_readable(sum(self.cats.times.values()))
         self.final_lst = [
             prog_title,
-            'Start time: {}'.format(self.cats.beginning),
+            'Start time: {}'.format(self.cats.beg_str),
             '',
             '== Time Totals ==',
             '',
@@ -96,7 +100,7 @@ class TheOutput:
             ''
         ]
     def ins_menu_info(self):
-        '''Inserts components for menu output'''
+        '''Inserts components appearing only in menu output'''
         # Gets unused time and puts in human-readable string
         unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
         uu_time_str = make_human_readable(unused_sec)
@@ -121,12 +125,12 @@ class TheOutput:
         # Inserts the categories as numbered options, as well
         # as other options defined by the TimedCategories class,
         # into the menu print list
-        opt_tbl = '{0:<3}{1:.>22}'  # makes options box 25 wide in justified format
+        opt_tbl = '{0:<3}{1:.>22}'  # makes justified options box 25 wide
         # Determines line number for insterting uptions
         o_ins = [
             i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
         ][0]
-        # inserts justified table into output list
+        # inserts justified table into output list to center the whole table
         for opt, cat in self.cats.options.items():
             self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
             o_ins += 1
@@ -148,18 +152,34 @@ class TheOutput:
     def print_menu(self):
         '''Prints out a formatted menu'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+        # Insert lines into final output string
         self.ins_menu_info()
         self.ins_times()
-        ## Prints each line centered from output_list
+        # Prints each line centered from output_list
         for line in self.final_lst:
             print('{0:^61}'.format(line))
-    def print_summary(self):
+    def print_write_summary(self):
         '''prints summary and records to a file'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+        # Insert lines into final output string
         self.ins_times()
-        ## Prints each line centered from output_list
+        # Prints each line centered from output_list
         for line in self.final_lst:
             print('{0:^61}'.format(line))
+        # Create and/or write to output file
+        file_date = self.cats.beginning.strftime('%Y-%m-%d')
+        ## JH file_name = 'Time_Log_{}_test.txt'.format(file_date)
+        file_name = 'Time_Log_{}.txt'.format(file_date)
+        ## Determines if appending to existing file or creating it
+        if os.path.exists(file_name):
+            app_wrt = 'a'
+        else:
+            app_wrt = 'w+'
+        ## Writes, either new file or append
+        with open(file_name, app_wrt) as sum_file:
+            sum_file.write('_'*61+'\n')
+            for line in self.final_lst:
+                sum_file.write('{0:^61}\n'.format(line))
 
 
 def make_human_readable(time_in_seconds):
@@ -227,7 +247,8 @@ def main():
     title = "=== Jason's TimeCard ==="
     conf_file = 'timerpy.conf'
     beginning = get_start_time(title)
-    categories = TimedCategories(conf_file, beginning)  # checks for conf file and reads
+    # Check for/read conf file
+    categories = TimedCategories(conf_file, beginning)
     while True:
         menu = TheOutput(title, categories)
         menu.print_menu()
@@ -245,8 +266,10 @@ def main():
             if selection == 'a':  # add a category
                 categories.add_category(conf_file)  # will modify specified file
             if selection == 's':  # Summary and quit
+                print(selection)
                 summary = TheOutput(title, categories)
-                summary.print_summary()
+                summary.print_write_summary()
+                break
 
 
 main()
