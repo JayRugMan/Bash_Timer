@@ -53,16 +53,16 @@ class TimedCategories:
         self.rolling_time = right_now
         self.times[key] += time_2_add
     def add_category(self, the_file):
-        '''opens file to append new category as provided by
+        '''Opens file to append new category as provided by
         user when prompted, then adds the new category to
         the times and options dictionaries'''
         new_category = input('Please enter the new catetory: ')
-        # adds the new category to the py.conf file
+        # Adds the new category to the py.conf file
         with open(the_file, 'a') as file:
             file.write(new_category + '\n')
-        # adds new catetory to times dict with 0 time
+        # Adds new catetory to times dict with 0 time
         self.times[new_category] = 0
-        # inserts new category to options dictionary
+        # Inserts new category to options dictionary
         new_opt_num = 1
         for option_key in self.options:
             try:
@@ -126,7 +126,7 @@ class TheOutput:
         # as other options defined by the TimedCategories class,
         # into the menu print list
         opt_tbl = '{0:<3}{1:.>22}'  # makes justified options box 25 wide
-        # Determines line number for insterting uptions
+        # Determines line number for insterting options
         o_ins = [
             i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
         ][0]
@@ -137,6 +137,7 @@ class TheOutput:
         self.final_lst.insert(o_ins, '')
     def ins_times(self):
         '''Inserts the times into the output after sub-heading Time Totals'''
+        # Determines line number for inserting times to lines under Time Totals
         tt_ins = [
             i+2 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
         ][0]
@@ -261,7 +262,8 @@ def main():
             categories.add_time(str(selection))
             continue
         except ValueError:
-            if selection == 'r':  # refreshes menu with updated info
+            # refreshes menu with updated info, because "now" has changed
+            if selection == 'r':
                 continue
             if selection == 'a':  # add a category
                 categories.add_category(conf_file)  # will modify specified file
