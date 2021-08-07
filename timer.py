@@ -64,21 +64,15 @@ class TimedCategories:
         self.times[new_category] = 0
         # Inserts new category to options dictionary
         new_opt_num = 1
-        for option_key in self.options:
-            try:
-                if int(option_key) == new_opt_num:
-                    new_opt_num += 1
-            except ValueError:
-                continue
         num_items_lst = []
         str_items_lst = []
-        for key, val in self.options.items():
+        for opt, cat in self.options.items():
             try:
-                tosser = int(key)  # this just to test for numbered option
-                num_items_lst.append((key, val))
+                if int(opt) == new_opt_num:
+                    num_items_lst.append((opt, cat))
+                    new_opt_num += 1
             except ValueError:
-                str_items_lst.append((key, val))
-        del tosser
+                str_items_lst.append((opt, cat))
         num_items_lst.append((str(new_opt_num), new_category))
         self.options = dict(num_items_lst + str_items_lst)
 
@@ -171,13 +165,8 @@ class TheOutput:
         file_date = self.cats.beginning.strftime('%Y-%m-%d')
         ## JH file_name = 'Time_Log_{}_test.txt'.format(file_date)
         file_name = 'Time_Log_{}.txt'.format(file_date)
-        ## Determines if appending to existing file or creating it
-        if os.path.exists(file_name):
-            app_wrt = 'a'
-        else:
-            app_wrt = 'w+'
         ## Writes, either new file or append
-        with open(file_name, app_wrt) as sum_file:
+        with open(file_name, 'a+') as sum_file:
             sum_file.write('_'*61+'\n')
             for line in self.final_lst:
                 sum_file.write('{0:^61}\n'.format(line))
@@ -223,24 +212,13 @@ def get_start_time(prog_title):
             continue
         # Checks whether string is an actual time and exits loop
         if 0 <= hrs < 25 and 0 <= mins < 60 and 0 <= secs < 60:
+            del hrs, mins, secs
             break
         print('-- Error - enter a valid time as suggested')
     start_dt_str = '{} {}'.format(start_d_str, start_t_str)
     start_dt = datetime.strptime(start_dt_str, '%Y %m %d %H %M %S')
-    del start_d_str, input_str_list, start_t_str, hrs, mins, secs, start_dt_str
+    del start_d_str, input_str_list, start_t_str, start_dt_str
     return start_dt
-
-
-##JH    def print_menu(prog_title, cats):
-##JH        '''Prints out a formatted menu'''
-##JH        os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
-##JH        output_list = MenuOutputList(prog_title, cats)
-##JH        output_list.ins_times()
-##JH        output_list.ins_options()
-##JH        ## Prints each line centered from output_list
-##JH        for line in output_list.final_lst:
-##JH            print('{0:^61}'.format(line))
-##JH        del output_list
 
 
 def main():
