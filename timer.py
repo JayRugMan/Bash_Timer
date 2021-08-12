@@ -83,14 +83,15 @@ class TheOutput:
         '''starts the basic structure of the program output'''
         self.cats = cats
         # Adds up total time
-        t_time_str = make_human_readable(sum(self.cats.times.values()))
+        self.tut_time = sum(self.cats.times.values())
+        tut_time_str = make_human_readable(self.tut_time)
         self.final_lst = [
             prog_title,
             'Start time: {}'.format(self.cats.beg_str),
             '',
             '== Time Totals ==',
             '',
-            'Total time: ' + t_time_str,
+            'Total used time: ' + tut_time_str,
             ''
         ]
     def ins_menu_info(self):
@@ -98,6 +99,8 @@ class TheOutput:
         # Gets unused time and puts in human-readable string
         unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
         uu_time_str = make_human_readable(unused_sec)
+        all_sec = self.tut_time + unused_sec
+        all_time_str = make_human_readable(all_sec)
         # Calculates end of day considering lunch isn't included in full day
         # PER CURRENT VERSION, "Lunch" IS A NECESSARY CATEGORY (See README)
         et_w_lunch = (self.cats.end_time +
@@ -106,15 +109,17 @@ class TheOutput:
         eod = 'Time after 8 hours: {}'.format(self.cats.end_time.time())
         eod_w_lnch = '8 Hours plus lunch: {}'.format(et_w_lunch.time())
         unused_str = 'Total unused time: ' + uu_time_str
+        total_time_str = 'Total Time: ' + all_time_str
         opts_heading = '== Options =='
         self.final_lst.insert(2, eod)
         self.final_lst.insert(3, eod_w_lnch)
-        # Determines the line just below "Total time" for unused time
+        # Determines the line of "Total Used time" for unused and total time
         unused_ins = [
-            i for i, s in enumerate(self.final_lst) if 'Total time' in s
+            i for i, s in enumerate(self.final_lst) if 'Total used time' in s
         ][0]
+        self.final_lst.insert(unused_ins+1, total_time_str)
         self.final_lst.insert(unused_ins, unused_str)
-        self.final_lst.insert(10, opts_heading)
+        self.final_lst.insert((unused_ins+4), opts_heading)
         #
         # Inserts the categories as numbered options, as well
         # as other options defined by the TimedCategories class,
