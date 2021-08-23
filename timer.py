@@ -14,7 +14,7 @@ class TimedCategories:
     '''Class to set up the dictionary of time categories based on
     timerpy.conf in current working directory. this file is required
     to run this program. see README for detials'''
-    def __init__(self, the_file, start_time):
+    def __init__(self, the_file, start_time, workday_hrs):
         try:
             with open(the_file, 'r') as file:
                 self.file_lst = list(file)
@@ -29,7 +29,7 @@ class TimedCategories:
             ' ' +\
             str(self.beginning)
         self.rolling_time = self.beginning
-        self.end_time = start_time + timedelta(hours=8)
+        self.end_time = start_time + workday_hrs
         # Takes time categories and creates a
         # dictionary of categories and one of options
         iterator = 1
@@ -192,15 +192,22 @@ def get_start_time(prog_title):
     '''
     # Sets start date string as "YYYY MM DD"
     start_d_str = datetime.now().date().strftime('%Y %m %d')
-    input_str_list = [
+    input_start_time = [
         prog_title,
         '',
         'Enter start time below in 24-hour format as hh mm ss',
         'or simply hit enter to continue with current time',
         ''
     ]
-    for line in input_str_list:
+    intput_total_hrs = [
+        '',
+        'How many hours are you working today (hh:mm)?',
+        'or simply hit enter to continue with 8 hours',
+        ''
+    ]
+    for line in input_start_time:
         print('{0:^61}'.format(line))
+    # Loops to get the start time in proper format
     while True:
         start_t_str = input(': ')
         # Sets start time as now if not entered and exits loop
@@ -220,19 +227,42 @@ def get_start_time(prog_title):
             del hrs, mins, secs
             break
         print('-- Error - enter a valid time as suggested')
+    for line in intput_total_hrs:
+        print('{0:^61}'.format(line))
+    # Loops to get the duration in proper format
+    while True:
+        workday_hours = input(': ')
+        # Sets workday hours to 8 if not enters and exists loop
+        if not workday_hours:
+            workday_hours = '08:00'
+            break
+        # Check whether string is in required format
+        try:
+            hrs = int(workday_hours[0:2])
+            mins = int(workday_hours[3:5])
+        except ValueError:
+            print("-- Error - enter time integers as suggested")
+            continue
+        # Checks if string entered is actual hours:minutes
+        if 0 <= hrs < 24 and 0 <= mins < 60:
+            del hrs, mins
+            break
+        print('-- Error - enter a valid duration as suggested')
     start_dt_str = '{} {}'.format(start_d_str, start_t_str)
     start_dt = datetime.strptime(start_dt_str, '%Y %m %d %H %M %S')
-    del start_d_str, input_str_list, start_t_str, start_dt_str
-    return start_dt
+    workday_hrs_dt = timedelta(hours=int(workday_hours[0:2]),
+                               minutes=int(workday_hours[3:5]))
+    del start_d_str, input_start_time, start_t_str, start_dt_str
+    return start_dt, workday_hrs_dt
 
 
 def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
     conf_file = 'timerpy.conf'
-    beginning = get_start_time(title)
+    beginning, workday = get_start_time(title)
     # Check for/read conf file
-    categories = TimedCategories(conf_file, beginning)
+    categories = TimedCategories(conf_file, beginning, workday)
     while True:
         menu = TheOutput(title, categories)
         menu.print_menu()
