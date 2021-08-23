@@ -230,7 +230,7 @@ def get_starting_input(prompt_text_lst, output_type):
     # If the output type is to be a duration
     if output_type == 'duration':
         if not user_input:
-            user_input = '08:00'
+            user_input = '08 00'
         final_output = timedelta(hours=int(user_input[0:2]),
                                minutes=int(user_input[3:5]))
     del prompt_text_lst, user_input, output_type
