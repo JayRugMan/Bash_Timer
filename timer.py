@@ -14,7 +14,7 @@ class TimedCategories:
     '''Class to set up the dictionary of time categories based on
     timerpy.conf in current working directory. this file is required
     to run this program. see README for detials'''
-    def __init__(self, the_file, start_time):
+    def __init__(self, the_file, start_time, workday_hrs):
         try:
             with open(the_file, 'r') as file:
                 self.file_lst = list(file)
@@ -29,7 +29,7 @@ class TimedCategories:
             ' ' +\
             str(self.beginning)
         self.rolling_time = self.beginning
-        self.end_time = start_time + timedelta(hours=8)
+        self.end_time = start_time + workday_hrs
         # Takes time categories and creates a
         # dictionary of categories and one of options
         iterator = 1
@@ -42,7 +42,7 @@ class TimedCategories:
         self.options.update({
             'r':'Refresh',
             'a':'Add a Category',
-            's':'Summarize and Quit'
+            'q':'Summarize and Quit'
         })
     def add_time(self, option):
         '''adds time specified by the val argument
@@ -94,7 +94,7 @@ class TheOutput:
             'Total used time: ' + tut_time_str,
             ''
         ]
-    def ins_menu_info(self):
+    def ins_menu_info(self, duration):
         '''Inserts components appearing only in menu output'''
         # Gets unused time and puts in human-readable string
         unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
@@ -105,8 +105,11 @@ class TheOutput:
         et_w_lunch = (self.cats.end_time +
             timedelta(seconds=self.cats.times['Lunch'])
         )
-        eod = 'Time after 8 hours: {}'.format(self.cats.end_time.time())
-        eod_w_lnch = '8 Hours plus lunch: {}'.format(et_w_lunch.time())
+        wrkdy_hrs_mins = str(duration).split(':')
+        wrkdy_hrs_mins.pop()  # to remove the unneeded "seconds"
+        eod = 'Time after {} hrs {} mins: {}'.format(*wrkdy_hrs_mins,
+                                                     self.cats.end_time.time())
+        eod_w_lnch = 'Time plus lunch: {}'.format(et_w_lunch.time())
         unused_time_str = 'Total unused time: ' + uu_time_str
         total_time_str = 'Total Time: ' + all_time_str
         opts_heading = '== Options =='
@@ -148,23 +151,21 @@ class TheOutput:
                     tt_ins, '{}\n'.format(make_human_readable(time))
                 )
                 tt_ins += 1
-    def print_menu(self):
+    def print_menu(self, duration):
         '''Prints out a formatted menu'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
         # Insert lines into final output string
-        self.ins_menu_info()
+        self.ins_menu_info(duration)
         self.ins_times()
         # Prints each line centered from output_list
-        for line in self.final_lst:
-            print('{0:^61}'.format(line))
+        print_centered_61(self.final_lst)
     def print_write_summary(self):
         '''prints summary and records to a file'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
         # Insert lines into final output string
         self.ins_times()
         # Prints each line centered from output_list
-        for line in self.final_lst:
-            print('{0:^61}'.format(line))
+        print_centered_61(self.final_lst)
         # Create and/or write to output file
         file_date = self.cats.beginning.strftime('%Y-%m-%d')
         ## JH file_name = 'Time_Log_{}_test.txt'.format(file_date)
@@ -185,56 +186,80 @@ def make_human_readable(time_in_seconds):
     return time_as_strng
 
 
-def get_start_time(prog_title):
-    '''
-    Gets start time based on either user input or function start time
-    '''
-    # Sets start date string as "YYYY MM DD"
-    start_d_str = datetime.now().date().strftime('%Y %m %d')
-    input_str_list = [
-        prog_title,
-        '',
-        'Enter start time below in 24-hour format as hh mm ss',
-        'or simply hit enter to continue with current time',
-        ''
-    ]
-    for line in input_str_list:
+def print_centered_61(the_output_lst):
+    '''Prints the lines in the list provided centered in 61 characters'''
+    for line in the_output_lst:
         print('{0:^61}'.format(line))
+
+
+def get_starting_input(prompt_text_lst, output_type):
+    '''
+    Gets start time or hours based on either user input or default values
+    '''
+    print_centered_61(prompt_text_lst)
+    # Loops to get the start time in proper format
     while True:
-        start_t_str = input(': ')
-        # Sets start time as now if not entered and exits loop
-        if not start_t_str:
-            start_t_str = datetime.now().strftime('%H %M %S')
+        user_input = input(': ')
+        # If left blank, then default value is chosen and loop exits
+        if not user_input:
             break
         # Checks whether entry is integers in suggested format
         try:
-            hrs = int(start_t_str[0:2])
-            mins = int(start_t_str[3:5])
-            secs = int(start_t_str[6:8])
+            hrs = int(user_input[0:2])
+            mins = int(user_input[3:5])
         except ValueError:
             print("-- Error - enter time integers as suggested")
             continue
         # Checks whether string is an actual time and exits loop
-        if 0 <= hrs < 25 and 0 <= mins < 60 and 0 <= secs < 60:
-            del hrs, mins, secs
+        if 0 <= hrs < 25 and 0 <= mins < 60:
+            del hrs, mins
             break
         print('-- Error - enter a valid time as suggested')
-    start_dt_str = '{} {}'.format(start_d_str, start_t_str)
-    start_dt = datetime.strptime(start_dt_str, '%Y %m %d %H %M %S')
-    del start_d_str, input_str_list, start_t_str, start_dt_str
-    return start_dt
+    # If the output type is to be a time
+    if output_type == 'time':
+        # Sets start date string as "YYYY MM DD"
+        start_d_str = datetime.now().date().strftime('%Y %m %d')
+        # This if no time is entered, meaning default was chosen
+        if not user_input:
+            user_input = datetime.now().strftime('%H %M')
+        start_dt_str = '{} {}'.format(start_d_str, user_input)
+        final_output = datetime.strptime(start_dt_str, '%Y %m %d %H %M')
+        del start_d_str, start_dt_str
+    # If the output type is to be a duration
+    if output_type == 'duration':
+        if not user_input:
+            user_input = '08 00'
+        final_output = timedelta(hours=int(user_input[0:2]),
+                               minutes=int(user_input[3:5]))
+    del prompt_text_lst, user_input, output_type
+    return final_output
 
 
 def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
     conf_file = 'timerpy.conf'
-    beginning = get_start_time(title)
+    start_time_prompt = [
+        title,
+        '',
+        'Enter start time below in 24-hour format as hh mm',
+        'or simply hit enter to continue with current time',
+        ''
+    ]
+    total_hrs_prompt = [
+        '',
+        'How many hours are you working today (hh mm)?',
+        'or simply hit enter to continue with 8 hours',
+        ''
+    ]
+    beginning = get_starting_input(start_time_prompt, 'time')
+    workday = get_starting_input(total_hrs_prompt, 'duration')
+    ##JH beginning, workday = get_start_time(title)
     # Check for/read conf file
-    categories = TimedCategories(conf_file, beginning)
+    categories = TimedCategories(conf_file, beginning, workday)
     while True:
         menu = TheOutput(title, categories)
-        menu.print_menu()
+        menu.print_menu(workday)
         while True:
             selection = input(': ')
             if selection in categories.options:
@@ -249,7 +274,7 @@ def main():
                 continue
             if selection == 'a':  # add a category
                 categories.add_category(conf_file)  # will modify specified file
-            if selection == 's':  # Summary and quit
+            if selection == 'q':  # Summary and quit
                 print(selection)
                 summary = TheOutput(title, categories)
                 summary.print_write_summary()
