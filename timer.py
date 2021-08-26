@@ -99,8 +99,7 @@ class TheOutput:
         # Gets unused time and puts in human-readable string
         unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
         uu_time_str = make_human_readable(unused_sec)
-        all_sec = self.tut_time + unused_sec
-        all_time_str = make_human_readable(all_sec)
+        all_time_str = make_human_readable(self.tut_time + unused_sec)
         # Calculates end of day considering lunch isn't included in full day
         # PER CURRENT VERSION, "Lunch" IS A NECESSARY CATEGORY (See README)
         et_w_lunch = (self.cats.end_time +
@@ -108,7 +107,7 @@ class TheOutput:
         )
         eod = 'Time after 8 hours: {}'.format(self.cats.end_time.time())
         eod_w_lnch = '8 Hours plus lunch: {}'.format(et_w_lunch.time())
-        unused_str = 'Total unused time: ' + uu_time_str
+        unused_time_str = 'Total unused time: ' + uu_time_str
         total_time_str = 'Total Time: ' + all_time_str
         opts_heading = '== Options =='
         self.final_lst.insert(2, eod)
@@ -118,7 +117,7 @@ class TheOutput:
             i for i, s in enumerate(self.final_lst) if 'Total used time' in s
         ][0]
         self.final_lst.insert(unused_ins+1, total_time_str)
-        self.final_lst.insert(unused_ins, unused_str)
+        self.final_lst.insert(unused_ins, unused_time_str)
         self.final_lst.insert((unused_ins+4), opts_heading)
         #
         # Inserts the categories as numbered options, as well
