@@ -1,0 +1,236 @@
+Python 3.8.10 (default, Jun  2 2021, 10:49:15) 
+[GCC 9.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import sys
+>>> from calendar import day_abbr
+>>> from datetime import datetime
+>>> from datetime import timedelta
+>>> the_file = timerpy_test.conf
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'timerpy_test' is not defined
+>>> the_file = "timerpy_test.conf"
+>>> with open(the_file, 'r') as file:
+...     self.file_lst = list(file)
+... 
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+NameError: name 'self' is not defined
+>>> with open(the_file, 'r') as file:
+...     file_lst = list(file)
+... 
+>>> for line in file_lst:
+...     print(line)
+... 
+# Categories
+
+Lunch
+
+  main
+
+test1
+
+  main
+
+  sub one
+
+  B
+
+test 2
+
+  main
+
+  Sub-cat A
+
+  two
+
+>>> for line in file_lst:
+...     line = line.rstrip('\n')
+...     print(line)
+... 
+# Categories
+Lunch
+  main
+test1
+  main
+  sub one
+  B
+test 2
+  main
+  Sub-cat A
+  two
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         print(line)
+... 
+Lunch
+  main
+test1
+  main
+  sub one
+  B
+test 2
+  main
+  Sub-cat A
+  two
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if '^  ' not in line:
+...             print(line)
+... 
+Lunch
+  main
+test1
+  main
+  sub one
+  B
+test 2
+  main
+  Sub-cat A
+  two
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if bool(re.search(r"\s\s", line)):
+...             print(line)
+... 
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+NameError: name 're' is not defined
+>>> iport re
+  File "<stdin>", line 1
+    iport re
+          ^
+SyntaxError: invalid syntax
+>>> import re
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if bool(re.search(r"\s\s", line)):
+...             print(line)
+... 
+  main
+  main
+  sub one
+  B
+  main
+  Sub-cat A
+  two
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             print(line)
+... 
+Lunch
+test1
+test 2
+>>> times = {}
+>>> main_cats_list = []
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cats_list.append(line)
+... 
+>>> print(main_cats_list)
+['Lunch', 'test1', 'test 2']
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cat = line
+...         if bool(re.search(r"\s\s", line)):
+...             times[main_cat][line] = 0
+... 
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+KeyError: 'Lunch'
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cat = line
+...             times[main_cat] = {}
+...         if bool(re.search(r"\s\s", line)):
+...             times[main_cat][line] = 0
+... 
+>>> 
+>>> 
+>>> 
+>>> times
+{'Lunch': {'  main': 0}, 'test1': {'  main': 0, '  sub one': 0, '  B': 0}, 'test 2': {'  main': 0, '  Sub-cat A': 0, '  two': 0}}
+>>> del times
+>>> times = {}
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cat = line
+...             times[main_cat] = {}
+...         if bool(re.search(r"\s\s", line)):
+...             times[main_cat][line] = 0
+... 
+>>> times = {}
+>>> del times
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cat = line
+...             times[main_cat] = {}
+...         if bool(re.search(r"\s\s", line)):
+...                 line = line.rstrip('\s')
+  File "<stdin>", line 8
+    line = line.rstrip('\s')
+                           ^
+TabError: inconsistent use of tabs and spaces in indentation
+>>>             times[main_cat][line] = 0
+  File "<stdin>", line 1
+    times[main_cat][line] = 0
+    ^
+IndentationError: unexpected indent
+>>> del times
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'times' is not defined
+>>> times = {}
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cat = line
+...             times[main_cat] = {}
+...         if bool(re.search(r"\s\s", line)):
+...             line = line.rstrip('\s')
+...             times[main_cat][line] = 0
+... 
+>>> times
+{'Lunch': {'  main': 0}, 'test1': {'  main': 0, '  sub one': 0, '  B': 0}, 'test 2': {'  main': 0, '  Sub-cat A': 0, '  two': 0}}
+>>> '  hello'.rstrip('\s')
+'  hello'
+>>> '  hello'.rstrip('\s\s')
+'  hello'
+>>> '  hello'.lstrip('\s\s')
+'  hello'
+>>> '  hello'.lstrip()
+'hello'
+>>> del times
+>>> times = {}
+>>> for line in file_lst:
+...     if '#' not in line:
+...         line = line.rstrip('\n')
+...         if not bool(re.search(r"\s\s", line)):
+...             main_cat = line
+...             times[main_cat] = {}
+...         if bool(re.search(r"\s\s", line)):
+...             line = line.lstrip()
+...             times[main_cat][line] = 0
+... 
+>>> times
+{'Lunch': {'main': 0}, 'test1': {'main': 0, 'sub one': 0, 'B': 0}, 'test 2': {'main': 0, 'Sub-cat A': 0, 'two': 0}}
+>>> 
+
+

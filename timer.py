@@ -238,7 +238,8 @@ def get_starting_input(prompt_text_lst, output_type):
 def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
-    conf_file = 'timerpy.conf'
+    ##JH conf_file = 'timerpy.conf'
+    conf_file = 'timerpy_test.conf'
     start_time_prompt = [
         title,
         '',
