@@ -1,14 +1,33 @@
-#!/usr/bin/python3
+"""Classes and functions for timer.py"""
+
 
 import os
 import sys
+from datetime import datetime
+from datetime import timedelta
 from calendar import day_abbr
+
+
+def make_human_readable(time_in_seconds):
+    '''Takes seconds and returns formatted string'''
+    str_format = '{} Hr(s), {} Min(s), {} Sec(s)'
+    time_list = str(timedelta(seconds=int(time_in_seconds))).split(':')
+    time_as_strng = str_format.format(*time_list)
+    del str_format, time_list
+    return time_as_strng
+
+
+def print_centered_61(the_output_lst):
+    '''Prints the lines in the list provided centered in 61 characters'''
+    for line in the_output_lst:
+        print('{0:^61}'.format(line))
 
 
 class TimedCategories:
     '''Class to set up the dictionary of time categories based on
     timerpy.conf in current working directory. this file is required
     to run this program. see README for detials'''
+
     def __init__(self, the_file, start_time, workday_hrs):
         try:
             with open(the_file, 'r') as file:
@@ -39,6 +58,7 @@ class TimedCategories:
             'a':'Add a Category',
             'q':'Summarize and Quit'
         })
+
     def add_time(self, option):
         '''adds time specified by the val argument
         to the category specifed by the cat key arg'''
@@ -47,6 +67,7 @@ class TimedCategories:
         time_2_add = int((right_now - self.rolling_time).total_seconds())
         self.rolling_time = right_now
         self.times[key] += time_2_add
+
     def add_category(self, the_file):
         '''Opens file to append new category as provided by
         user when prompted, then adds the new category to
@@ -74,6 +95,7 @@ class TimedCategories:
 
 class TheOutput:
     '''Class defining the menu or summary outout to be printed'''
+
     def __init__(self, prog_title, cats):
         '''starts the basic structure of the program output'''
         self.cats = cats
@@ -89,6 +111,7 @@ class TheOutput:
             'Total used time: ' + tut_time_str,
             ''
         ]
+
     def ins_menu_info(self, duration):
         '''Inserts components appearing only in menu output'''
         # Gets unused time and puts in human-readable string
@@ -131,6 +154,7 @@ class TheOutput:
             self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
             o_ins += 1
         self.final_lst.insert(o_ins, '')
+
     def ins_times(self):
         '''Inserts the times into the output after sub-heading Time Totals'''
         # Determines line number for inserting times to lines under Time Totals
@@ -146,6 +170,7 @@ class TheOutput:
                     tt_ins, '{}\n'.format(make_human_readable(time))
                 )
                 tt_ins += 1
+
     def print_menu(self, duration):
         '''Prints out a formatted menu'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
@@ -154,6 +179,7 @@ class TheOutput:
         self.ins_times()
         # Prints each line centered from output_list
         print_centered_61(self.final_lst)
+
     def print_write_summary(self):
         '''prints summary and records to a file'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen

@@ -7,21 +7,7 @@ from datetime import datetime
 from datetime import timedelta
 from python_timer_stuff import TimedCategories
 from python_timer_stuff import TheOutput
-
-
-def make_human_readable(time_in_seconds):
-    '''Takes seconds and returns formatted string'''
-    str_format = '{} Hr(s), {} Min(s), {} Sec(s)'
-    time_list = str(timedelta(seconds=int(time_in_seconds))).split(':')
-    time_as_strng = str_format.format(*time_list)
-    del str_format, time_list
-    return time_as_strng
-
-
-def print_centered_61(the_output_lst):
-    '''Prints the lines in the list provided centered in 61 characters'''
-    for line in the_output_lst:
-        print('{0:^61}'.format(line))
+from python_timer_stuff import print_centered_61
 
 
 def get_starting_input(prompt_text_lst, output_type):
