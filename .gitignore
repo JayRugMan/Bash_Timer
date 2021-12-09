@@ -5,5 +5,4 @@ timerpy.conf
 *__pycache__*
 
 # Include the following Directory
-!pythonTimerStuff/*
-
+!python_timer_stuff/*
