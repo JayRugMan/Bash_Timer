@@ -86,7 +86,7 @@ def main():
         menu.print_menu(workday)
         while True:
             selection = input(': ')
-            if selection in the_categories.options:
+            if selection in the_categories.options['sub']:
                 break
         try:
             selection = int(selection)

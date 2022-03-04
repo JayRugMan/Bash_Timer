@@ -32,16 +32,7 @@ class TimedCategories:
     to run this program. see README for detials'''
 
 
-    ##JH def __init__(self, the_file, start_time, workday_hrs):
     def __init__(self, start_time, workday_hrs):
-
-        ##JH try:
-        ##JH     with open(the_file, 'r') as file:
-        ##JH         self.file_lst = list(file)
-        ##JH except FileNotFoundError:
-        ##JH     sys.exit(
-        ##JH         '{} not found. please refer to the README'.format(the_file)
-        ##JH     )
 
         self.times = {
             'sup': {},
@@ -141,9 +132,10 @@ class TheOutput:
 
     def __init__(self, prog_title, cats):
         '''starts the basic structure of the program output'''
+
         self.cats = cats
         # Adds up total time
-        self.tut_time = sum(self.cats.times.values())
+        self.tut_time = sum(self.cats.times['sup'].values())
         tut_time_str = make_human_readable(self.tut_time)
         self.final_lst = [
             prog_title,
@@ -156,7 +148,7 @@ class TheOutput:
         ]
 
 
-    def ins_menu_info(self, duration):
+    def show_menu_info(self, duration):
         '''Inserts components appearing only in menu output'''
 
         # Gets unused time and puts in human-readable string
@@ -167,16 +159,18 @@ class TheOutput:
         # Calculates end of day considering lunch isn't included in full day
         # PER CURRENT VERSION, "Lunch" IS A NECESSARY CATEGORY (See README)
         et_w_lunch = (self.cats.end_time +
-            timedelta(seconds=self.cats.times['Lunch'])
+            timedelta(seconds=self.cats.times['sub']['Lunch'])
         )
         wrkdy_hrs_mins = str(duration).split(':')
         wrkdy_hrs_mins.pop()  # to remove the unneeded "seconds"
+
         eod = 'Time after {} hrs {} mins: {}'.format(*wrkdy_hrs_mins,
                                                      self.cats.end_time.time())
         eod_w_lnch = 'Time plus lunch: {}'.format(et_w_lunch.time())
         unused_time_str = 'Total unused time: ' + uu_time_str
         total_time_str = 'Total Time: ' + all_time_str
         opts_heading = '== Options =='
+
         self.final_lst.insert(2, eod)
         self.final_lst.insert(3, eod_w_lnch)
 
@@ -199,14 +193,15 @@ class TheOutput:
         ][0]
 
         # inserts justified table into output list to center the whole table
-        for opt, cat in self.cats.options.items():
+        for opt, cat in self.cats.options['sub'].items():
             self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
             o_ins += 1
         self.final_lst.insert(o_ins, '')
 
 
-    def ins_times(self):
-        '''Inserts the times into the output after sub-heading Time Totals'''
+    def show_time_totals(self):
+        '''Inserts the times into the output after sub-heading
+        Time Totals. Used in menu, as well as in the summary'''
 
         # Determines line number for inserting times to lines under Time Totals
         tt_ins = [
@@ -214,14 +209,25 @@ class TheOutput:
         ][0]
 
         # Inserts centered table into output list
-        for cat, time in self.cats.times.items():
-            if time > 0:
-                self.final_lst.insert(tt_ins, '-- {} --'.format(cat))
-                tt_ins += 1
-                self.final_lst.insert(
-                    tt_ins, '{}\n'.format(make_human_readable(time))
-                )
-                tt_ins += 1
+        for sup_cat,sub_cats in categories.lists.items():
+
+            sp_time = self.cats.times['sup'][sup_cat]
+            if sp_time > 0:
+                spcat_string = '--------- {} ---------'.format(sup_cat)
+                sptime_string = '{}\n'.format(make_human_readable(sp_time))
+                self.final_lst.insert(tt_ins, sptime_string)
+                self.final_lst.insert(tt_ins, spcat_string)
+                tt_ins += 2
+
+            for sub_cat in sub_cats:
+
+                sb_time = self.cats.times['sub'][sub_cat]
+                if sb_time > 0:
+                    sbcat_string = '-- {} --'.format(sub_cat)
+                    sbtime_string = '{}\n'.format(make_human_readable(sb_time))
+                    self.final_lst.insert(tt_ins, sbtime_string)
+                    self.final_lst.insert(tt_ins, sbcat_string)
+                    tt_ins += 2
 
 
     def print_menu(self, duration):
@@ -230,8 +236,8 @@ class TheOutput:
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
 
         # Insert lines into final output string
-        self.ins_menu_info(duration)
-        self.ins_times()
+        self.show_menu_info(duration)
+        self.show_time_totals()
 
         # Prints each line centered from output_list
         print_centered_61(self.final_lst)
@@ -242,7 +248,7 @@ class TheOutput:
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
 
         # Insert lines into final output string
-        self.ins_times()
+        self.show_time_totals()
 
         # Prints each line centered from output_list
         print_centered_61(self.final_lst)
