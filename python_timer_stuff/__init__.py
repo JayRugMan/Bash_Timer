@@ -85,7 +85,7 @@ class TimedCategories:
         '''Opens file to append new category as provided by
         user when prompted, then adds the new category to
         the times and options dictionaries'''
-        new_subcat = input('Please enter the new sub-catetory: ')
+        new_subcat = input('Please enter the new sub-category: ')
 
         # Displays list of super cats & loops 'til valid sel is made
         while True:
