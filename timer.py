@@ -97,7 +97,7 @@ def main():
             if selection == 'r':
                 continue
             if selection == 'a':  # add a category
-                the_categories.add_category()  # will modify specified file
+                the_categories.add_sub_category()  # will modify specified file
             if selection == 'q':  # Summary and quit
                 print(selection)
                 summary = TheOutput(title, the_categories)
