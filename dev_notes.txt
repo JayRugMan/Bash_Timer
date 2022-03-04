@@ -1,107 +1,13 @@
 Checklist:
-	[ ] modify TimedCategories class with dictionary of dictionaries
-	[ ]   ``         ``          ``  funtions to handle new dictionary
-	[ ] create second options menu for each catgory to select a sub-cat
-	[ ] create add_sub_cat function for TimedCategories class
-		( ) add option to options list
-		( ) add function
-	[ ] udpate TheOutput class to output sub-categories
-		( ) decide on format
-		( ) add code
-	[ ] update README with new conf file format to allow sub categories
-
-
-# CODE SNIPPETS# 
-
-### IMPORTS
-import sys
-import re
-from calendar import day_abbr
-from datetime import datetime
-from datetime import timedelta
-
-### ARGS
-the_file = "timerpy_test.conf"
-with open(the_file, 'r') as file:
-    file_lst = list(file)
-
-### VERIFY
-for line in file_lst:
-    line = line.rstrip('\n')
-    print(line)
-
-# Categories
-Lunch
-  main
-test1
-  main
-  sub one
-  B
-test 2
-  main
-  Sub-cat A
-  two
-
-### WITHOUT COMMENTED LINE
-for line in file_lst:
-    if '#' not in line:
-        line = line.rstrip('\n')
-        print(line)
-
-Lunch
-  main
-test1
-  main
-  sub one
-  B
-test 2
-  main
-  Sub-cat A
-  two
-
-### FILTER FOR SUB CATEGORIES (TWO LEADING SPACES)
-for line in file_lst:
-    if '#' not in line:
-        line = line.rstrip('\n')
-        if bool(re.search(r"\s\s", line)):
-            print(line)
-
-  main
-  main
-  sub one
-  B
-  main
-  Sub-cat A
-  two
-
-### FILTER FOR MAIN CATEGORIES (NO LEADING SPACES)
-for line in file_lst:
-    if '#' not in line:
-        line = line.rstrip('\n')
-        if not bool(re.search(r"\s\s", line)):
-            print(line)
-
-Lunch
-test1
-test 2
-
-### CODE T0 STRIP LEADING SPACES
-'  hello'.lstrip()
-'hello'
-
-### MAKE DICTIONARY OF DICTIONARIES FOR EACH CATEGORY/SUB-CATEGORY
-times = {}
-for line in file_lst:
-    if '#' not in line:
-        line = line.rstrip('\n')
-        if not bool(re.search(r"\s\s", line)):
-            main_cat = line
-            times[main_cat] = {}
-        if bool(re.search(r"\s\s", line)):
-            line = line.lstrip()
-            times[main_cat][line] = 0
-
-times
-{'Lunch': {'main': 0}, 'test1': {'main': 0, 'sub one': 0, 'B': 0}, 'test 2': {'main': 0, 'Sub-cat A': 0, 'two': 0}}
+	[x] modify TimedCategories class with dictionary of dictionaries
+	[x]   ``         ``          ``  funtions to handle new dictionary
+	[x] create second options menu for each catgory to select a sub-cat
+	[x] create add_sub_cat function for TimedCategories class
+		(x) add option to options list
+		(x) add function
+	[x] udpate TheOutput class to output sub-categories
+		(x) decide on format
+		(x) add code
+	[x] update README with new conf(json) file format to allow sub categories
 
 
