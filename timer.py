@@ -3,12 +3,8 @@
 This script tracks time for deltas for specified category
 '''
 
-import os
-import sys
-from calendar import day_abbr
 from datetime import datetime
 from datetime import timedelta
-from python_timer_stuff import make_human_readable
 from python_timer_stuff import print_centered_61
 from python_timer_stuff import TimedCategories
 from python_timer_stuff import TheOutput
@@ -65,7 +61,6 @@ def get_starting_input(prompt_text_lst, output_type):
 def main():
     '''Main Event'''
     title = "=== Jason's TimeCard ==="
-    conf_file = 'timerpy.conf'
     start_time_prompt = [
         title,
         '',
@@ -83,29 +78,29 @@ def main():
     workday = get_starting_input(total_hrs_prompt, 'duration')
     ##JH beginning, workday = get_start_time(title)
     # Check for/read conf file
-    categories = TimedCategories(conf_file, beginning, workday)
-    
-    
+    the_categories = TimedCategories(beginning, workday)
+
+
     while True:
-        menu = TheOutput(title, categories)
+        menu = TheOutput(title, the_categories)
         menu.print_menu(workday)
         while True:
             selection = input(': ')
-            if selection in categories.options:
+            if selection in the_categories.options:
                 break
         try:
             selection = int(selection)
-            categories.add_time(str(selection))
+            the_categories.add_time(str(selection))
             continue
         except ValueError:
             # refreshes menu with updated info, because "now" has changed
             if selection == 'r':
                 continue
             if selection == 'a':  # add a category
-                categories.add_category(conf_file)  # will modify specified file
+                the_categories.add_category()  # will modify specified file
             if selection == 'q':  # Summary and quit
                 print(selection)
-                summary = TheOutput(title, categories)
+                summary = TheOutput(title, the_categories)
                 summary.print_write_summary()
                 break
 

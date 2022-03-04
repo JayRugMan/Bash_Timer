@@ -3,9 +3,11 @@
 
 import os
 import sys
+import json
 from datetime import datetime
 from datetime import timedelta
 from calendar import day_abbr
+from python_timer_stuff import json_to_dict as categories
 
 
 def make_human_readable(time_in_seconds):
@@ -29,18 +31,26 @@ class TimedCategories:
     timerpy.conf in current working directory. this file is required
     to run this program. see README for detials'''
 
-    def __init__(self, the_file, start_time, workday_hrs):
 
-        try:
-            with open(the_file, 'r') as file:
-                self.file_lst = list(file)
-        except FileNotFoundError:
-            sys.exit(
-                '{} not found. please refer to the README'.format(the_file)
-            )
+    ##JH def __init__(self, the_file, start_time, workday_hrs):
+    def __init__(self, start_time, workday_hrs):
 
-        self.times = {}
-        self.options = {}
+        ##JH try:
+        ##JH     with open(the_file, 'r') as file:
+        ##JH         self.file_lst = list(file)
+        ##JH except FileNotFoundError:
+        ##JH     sys.exit(
+        ##JH         '{} not found. please refer to the README'.format(the_file)
+        ##JH     )
+
+        self.times = {
+            'sup': {},
+            'sub': {}
+        }  # dict of sub and super category dicts
+        self.options = {
+            'sup': {},
+            'sub': {}
+        }  # dict of sub and super options dicts
         self.beginning = start_time
         self.beg_str = day_abbr[self.beginning.weekday()] +\
             ' ' +\
@@ -49,15 +59,18 @@ class TimedCategories:
         self.end_time = start_time + workday_hrs
         # Takes time categories and creates a
         # dictionary of categories and one of options
-        
-        iterator = 1
-        for line in self.file_lst:
-            if '#' not in line:
-                line = line.rstrip('\n')
-                self.times[line] = 0
-                self.options[str(iterator)] = line
-                iterator += 1
-        self.options.update({
+
+        sup_iterator = 1
+        sub_iterator = 1
+        for sup_cat,sub_cats in categories.lists.items():
+            self.times['sup'][sup_cat] = 0
+            self.options['sup'][str(sup_iterator)] = sup_cat
+            sup_iterator += 1
+            for sub_cat in sub_cats:
+                self.times['sub'][sub_cat] = 0
+                self.options['sub'][str(sub_iterator)] = sub_cat
+                sub_iterator += 1
+        self.options['sub'].update({
             'r':'Refresh',
             'a':'Add a Category',
             'q':'Summarize and Quit'
@@ -66,33 +79,50 @@ class TimedCategories:
 
     def add_time(self, option):
         '''adds time specified by the val argument
-        to the category specifed by the cat key arg'''
-        key = self.options[option]
+        to the category specifed by the cat sbcat arg'''
+        sbcat = self.options['sub'][option]
         right_now = datetime.now()
         time_2_add = int((right_now - self.rolling_time).total_seconds())
         self.rolling_time = right_now
-        self.times[key] += time_2_add
+        self.times['sub'][sbcat] += time_2_add
+        for spcat,sbcats in categories.lists.items():
+            if sbcat in sbcats:
+                self.times['sup'][spcat] += time_2_add
 
 
-    def add_category(self, the_file):
+    def add_sub_category(self):
         '''Opens file to append new category as provided by
         user when prompted, then adds the new category to
         the times and options dictionaries'''
-        new_category = input('Please enter the new catetory: ')
+        new_subcat = input('Please enter the new sub-catetory: ')
 
-        # Adds the new category to the py.conf file
-        with open(the_file, 'a') as file:
-            file.write(new_category + '\n')
+        # Displays list of super cats & loops 'til valid sel is made
+        while True:
+            for opt,spcat in self.options['sup']:
+                print("{} - {}".format(opt,spcat))
+            selection = input('Under which super catetory: ')
+            if selection in self.options['sup'].keys():
+                newsubs_supcat = self.options['sup'][str(selection)]
+                categories.lists[newsubs_supcat].append(new_subcat)
+                break
+
+        # Adds the new category to the json file
+        with open(categories.THE_FILE, 'w') as json_file:
+            json_file.write(
+                json.dumps(
+                    categories.lists, sort_keys=True, indent=2
+                ) + '\n'
+            )
 
         # Adds new catetory to times dict with 0 time
-        self.times[new_category] = 0
+        self.times['sub'][new_subcat] = 0
 
         # Inserts new category to options dictionary
         new_opt_num = 1
         num_items_lst = []
         str_items_lst = []
 
-        for opt, cat in self.options.items():
+        for opt, cat in self.options['sub'].items():
             try:
                 if int(opt) == new_opt_num:
                     num_items_lst.append((opt, cat))
@@ -100,18 +130,18 @@ class TimedCategories:
             except ValueError:
                 str_items_lst.append((opt, cat))
 
-        num_items_lst.append((str(new_opt_num), new_category))
-        self.options = dict(num_items_lst + str_items_lst)
+        num_items_lst.append((str(new_opt_num), new_subcat))
+        self.options['sub'] = dict(num_items_lst + str_items_lst)
 
 
 
 class TheOutput:
     '''Class defining the menu or summary outout to be printed'''
 
+
     def __init__(self, prog_title, cats):
         '''starts the basic structure of the program output'''
         self.cats = cats
-
         # Adds up total time
         self.tut_time = sum(self.cats.times.values())
         tut_time_str = make_human_readable(self.tut_time)
@@ -149,6 +179,7 @@ class TheOutput:
         opts_heading = '== Options =='
         self.final_lst.insert(2, eod)
         self.final_lst.insert(3, eod_w_lnch)
+
         # Determines the line of "Total Used time" for unused and total time
         unused_ins = [
             i for i, s in enumerate(self.final_lst) if 'Total used time' in s
@@ -176,10 +207,12 @@ class TheOutput:
 
     def ins_times(self):
         '''Inserts the times into the output after sub-heading Time Totals'''
+
         # Determines line number for inserting times to lines under Time Totals
         tt_ins = [
             i+2 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
         ][0]
+
         # Inserts centered table into output list
         for cat, time in self.cats.times.items():
             if time > 0:
@@ -193,10 +226,13 @@ class TheOutput:
 
     def print_menu(self, duration):
         '''Prints out a formatted menu'''
+
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+
         # Insert lines into final output string
         self.ins_menu_info(duration)
         self.ins_times()
+
         # Prints each line centered from output_list
         print_centered_61(self.final_lst)
 
