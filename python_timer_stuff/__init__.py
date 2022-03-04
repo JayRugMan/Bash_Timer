@@ -98,7 +98,7 @@ class TimedCategories:
 
         # Displays list of super cats & loops 'til valid sel is made
         while True:
-            for opt,spcat in self.options['sup']:
+            for opt,spcat in self.options['sup'].items():
                 print("{} - {}".format(opt,spcat))
             selection = input('Under which super catetory: ')
             if selection in self.options['sup'].keys():
