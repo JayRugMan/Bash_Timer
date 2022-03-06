@@ -14,6 +14,8 @@ def make_human_readable(time_in_seconds):
     '''Takes seconds and returns formatted string'''
     str_format = '{} Hr(s), {} Min(s), {} Sec(s)'
     time_list = str(timedelta(seconds=int(time_in_seconds))).split(':')
+    # Turn each list item from string to integer
+    time_list = [int(i) for i in time_list]
     time_as_strng = str_format.format(*time_list)
     del str_format, time_list
     return time_as_strng
@@ -28,7 +30,7 @@ def print_centered_61(the_output_lst):
 
 class TimedCategories:
     '''Class to set up the dictionary of time categories based on
-    timerpy.conf in current working directory. this file is required
+    categories.json in current working directory. this file is required
     to run this program. see README for detials'''
 
 
@@ -85,6 +87,7 @@ class TimedCategories:
         '''Opens file to append new category as provided by
         user when prompted, then adds the new category to
         the times and options dictionaries'''
+
         new_subcat = input('Please enter the new sub-category: ')
 
         # Displays list of super cats & loops 'til valid sel is made
@@ -163,6 +166,7 @@ class TheOutput:
         )
         wrkdy_hrs_mins = str(duration).split(':')
         wrkdy_hrs_mins.pop()  # to remove the unneeded "seconds"
+        wrkdy_hrs_mins = [int(i) for i in wrkdy_hrs_mins]  # no zero-padding!
 
         eod = 'Time after {} hrs {} mins: {}'.format(*wrkdy_hrs_mins,
                                                      self.cats.end_time.time())
