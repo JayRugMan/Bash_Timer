@@ -2,3 +2,8 @@
 Time_Log*
 *timer.conf*
 timerpy.conf
+categories.json
+/*/__pycache__/
+
+# Include the following Directory
+!python_timer_stuff/*
