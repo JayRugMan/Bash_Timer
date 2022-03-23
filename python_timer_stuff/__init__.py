@@ -266,7 +266,6 @@ class TheOutput:
         for sup_cat, sub_cats in categories.lists.items():
 
             sp_time = self.cats.times['sup'][sup_cat]
-
             if sp_time > 0:
 
                 # for adding space buffer when more than one super cat
