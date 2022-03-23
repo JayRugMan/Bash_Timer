@@ -3,12 +3,9 @@
 This script tracks time for deltas for specified category
 '''
 
-from datetime import datetime
-from datetime import timedelta
-from python_timer_stuff import print_centered_61
+from python_timer_stuff import get_starting_input
 from python_timer_stuff import TimedCategories
 from python_timer_stuff import TheOutput
-from python_timer_stuff import get_starting_input
 
 
 def main():
