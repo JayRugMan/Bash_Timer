@@ -16,7 +16,9 @@ def make_human_readable(time_in_seconds):
     time_list = str(timedelta(seconds=int(time_in_seconds))).split(':')
     # Turn each list item from string to integer
     time_list = [int(i) for i in time_list]
-    time_as_strng = str_format.format(*time_list, (time_list[0]+time_list[1]/60))
+    time_as_strng = str_format.format(*time_list, (time_list[0]+
+                                                   time_list[1]/60+
+                                                   time_list[2]/3600))
     del str_format, time_list
     return time_as_strng
 
