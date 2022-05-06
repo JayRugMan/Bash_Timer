@@ -191,13 +191,14 @@ class TheOutput:
         # Adds up total time
         self.tut_time = sum(self.cats.times['sup'].values())
         tut_time_str = make_human_readable(self.tut_time)
+        self.tut_str = 'Total used time: ' + tut_time_str
         self.final_lst = [
             prog_title,
             'Start time: {}'.format(self.cats.beg_str),
             '',
             '========= Time Totals =========',
             '',
-            'Total used time: ' + tut_time_str,
+            self.tut_str,
             ''
         ]
 
@@ -230,9 +231,7 @@ class TheOutput:
         self.final_lst.insert(3, eod_w_lnch)
 
         # Determines the line of "Total Used time" for unused and total time
-        unused_ins = [
-            i for i, s in enumerate(self.final_lst) if 'Total used time' in s
-        ][0]
+        unused_ins = self.final_lst.index(self.tut_str)
         self.final_lst.insert(unused_ins+1, total_time_str)
         self.final_lst.insert(unused_ins, unused_time_str)
         self.final_lst.insert((unused_ins+4), opts_heading)
@@ -243,9 +242,7 @@ class TheOutput:
         opt_tbl = '{0:<3}{1:.>22}'  # makes justified options box 25 wide
 
         # Determines line number for insterting options
-        o_ins = [
-            i+1 for i, s in enumerate(self.final_lst) if 'Options' in s
-        ][0]
+        o_ins = self.final_lst.index(opts_heading) + 1
 
         # inserts justified table into output list to center the whole table
         for opt, cat in self.cats.options['sub'].items():
