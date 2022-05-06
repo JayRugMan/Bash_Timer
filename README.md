@@ -1,9 +1,7 @@
 # CLI Time Tracking Tool
 
 ## Bash Timer (timer.sh)
-_Note I'm no longer developing this one_
-
-Keep track of time using bash.
+Keep track of time using bash. (_Note I'm no longer developing this one_)
 
 This script needs a timer.comf file, which is included in the .gitignore file.
 The contents should be as follows:
