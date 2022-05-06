@@ -21,8 +21,8 @@ It can currently have up to 17 categories
 ## Python Timer (timer.py)
 Keep track of time using python3.
 
-This script needs a categories.json file, which filtered by the .gitignore file.
-It should contain some lines similar to the following.
+This script needs a categories.json file, which is filtered by the .gitignore
+ file. It should contain some lines similar to the following.
 
 ```json
 {
