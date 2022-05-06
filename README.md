@@ -17,7 +17,7 @@ CAT_HEADING_ARRAY=(
 It can currently have up to 17 categories
 
 
-# Python Timer (timer.py)
+## Python Timer (timer.py)
 keep track of time using python3
 This script needs a categories.json file, which is included in the .gitignore file.
 It should contain some lines similar to the following. Note the EOL character
