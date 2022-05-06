@@ -1,7 +1,9 @@
 # CLI Time Tracking Tool
 
 ## Bash Timer (timer.sh)
-keep track of time using bash
+_Note I'm no longer developing this one_
+Keep track of time using bash.
+
 This script needs a timer.comf file, which is included in the .gitignore file.
 The contents should be as follows:
 
@@ -18,7 +20,8 @@ It can currently have up to 17 categories
 
 
 ## Python Timer (timer.py)
-keep track of time using python3
+Keep track of time using python3.
+
 This script needs a categories.json file, which is included in the .gitignore file.
 It should contain some lines similar to the following. Note the EOL character
 should be \n (Unix style) - Maybe I'll make it work with /r/n or /r for Windows
@@ -47,4 +50,4 @@ will not be available until the program is exited and restarted.
 
 ### About "Lunch"
 If you add the super category "Lunch" with a sub category of "Lunch" then that
-time will be added to the end of day time.
+time will be added to the end of day time and subtracted from total time.
