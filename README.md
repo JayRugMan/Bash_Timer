@@ -2,6 +2,7 @@
 
 ## Bash Timer (timer.sh)
 _Note I'm no longer developing this one_
+
 Keep track of time using bash.
 
 This script needs a timer.comf file, which is included in the .gitignore file.
