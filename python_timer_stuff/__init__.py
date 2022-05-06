@@ -12,11 +12,13 @@ from python_timer_stuff import json_to_dict as categories
 
 def make_human_readable(time_in_seconds):
     '''Takes seconds and returns formatted string'''
-    str_format = '{} Hr(s), {} Min(s), {} Sec(s)'
+    str_format = '{}h {}m {}s ({:.3f})'
     time_list = str(timedelta(seconds=int(time_in_seconds))).split(':')
     # Turn each list item from string to integer
     time_list = [int(i) for i in time_list]
-    time_as_strng = str_format.format(*time_list)
+    time_as_strng = str_format.format(*time_list, (time_list[0]+
+                                                   time_list[1]/60+
+                                                   time_list[2]/3600))
     del str_format, time_list
     return time_as_strng
 
@@ -25,6 +27,55 @@ def print_centered_61(the_output_lst):
     '''Prints the lines in the list provided centered in 61 characters'''
     for line in the_output_lst:
         print('{0:^61}'.format(line))
+
+
+def get_starting_input(prompt_text_lst, output_type):
+    '''
+    Gets start time or hours based on either user input or default values
+    '''
+    print_centered_61(prompt_text_lst)
+    # Loops to get the start time in proper format
+
+    while True:
+        user_input = input(': ')
+        # If left blank, then default value is chosen and loop exits
+        if not user_input:
+            # This if no time or duration is entered, thus default was chosen
+            user_input = datetime.now().strftime('%H %M')
+            hrs = 8
+            mins = 0
+            break
+        # Checks whether entry is integers in suggested format
+        try:
+            hrs = int(user_input.split(' ')[0])
+            mins = int(user_input.split(' ')[1])
+        except ValueError:
+            print("-- Error - enter time integers as suggested")
+            continue
+        except IndexError:
+            print("-- Error - enter a value for both hours and minutes")
+            continue
+        # Checks whether string is an actual time and exits loop
+        if 0 <= hrs < 25 and 0 <= mins < 60:
+            break
+        print('-- Error - enter a valid time as suggested')
+
+    # If the output type is to be a time
+    if output_type == 'time':
+        # Sets start date string as "YYYY MM DD"
+        start_d_str = datetime.now().date().strftime('%Y %m %d')
+        start_dt_str = '{} {}'.format(start_d_str, user_input)
+        final_output = datetime.strptime(start_dt_str, '%Y %m %d %H %M')
+        del start_d_str, start_dt_str
+
+    # If the output type is to be a duration
+    if output_type == 'duration':
+        final_output = timedelta(hours=hrs,
+                               minutes=mins)
+
+    del prompt_text_lst, user_input, output_type, hrs, mins
+
+    return final_output
 
 
 
@@ -144,7 +195,7 @@ class TheOutput:
             prog_title,
             'Start time: {}'.format(self.cats.beg_str),
             '',
-            '== Time Totals ==',
+            '========= Time Totals =========',
             '',
             'Total used time: ' + tut_time_str,
             ''
@@ -173,7 +224,7 @@ class TheOutput:
         eod_w_lnch = 'Time plus lunch: {}'.format(et_w_lunch.time())
         unused_time_str = 'Total unused time: ' + uu_time_str
         total_time_str = 'Total Time: ' + all_time_str
-        opts_heading = '== Options =='
+        opts_heading = '======== Options ========'
 
         self.final_lst.insert(2, eod)
         self.final_lst.insert(3, eod_w_lnch)
@@ -209,29 +260,40 @@ class TheOutput:
 
         # Determines line number for inserting times to lines under Time Totals
         tt_ins = [
-            i+2 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
+            i+1 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
         ][0]
+        multi_cats = False
 
         # Inserts centered table into output list
-        for sup_cat,sub_cats in categories.lists.items():
+        for sup_cat, sub_cats in categories.lists.items():
 
             sp_time = self.cats.times['sup'][sup_cat]
             if sp_time > 0:
-                spcat_string = '--------- {} ---------'.format(sup_cat)
-                sptime_string = '{}\n'.format(make_human_readable(sp_time))
-                self.final_lst.insert(tt_ins, sptime_string)
-                self.final_lst.insert(tt_ins, spcat_string)
-                tt_ins += 2
 
-            for sub_cat in sub_cats:
+                # for adding space buffer when more than one super cat
+                if multi_cats:
+                    self.final_lst.insert(tt_ins, ' ')
+                    tt_ins += 1
+                else:
+                    multi_cats = True
 
-                sb_time = self.cats.times['sub'][sub_cat]
-                if sb_time > 0:
-                    sbcat_string = '-- {} --'.format(sub_cat)
-                    sbtime_string = '{}\n'.format(make_human_readable(sb_time))
-                    self.final_lst.insert(tt_ins, sbtime_string)
-                    self.final_lst.insert(tt_ins, sbcat_string)
-                    tt_ins += 2
+                cat_times_str = '--- {}: {} ---'.format(
+                    sup_cat,
+                    make_human_readable(sp_time)
+                )
+
+                for sub_cat in sub_cats:
+
+                    sb_time = self.cats.times['sub'][sub_cat]
+                    if sb_time > 0:
+                        cat_times_str += '\n{}: {}'.format(
+                            sub_cat,
+                            make_human_readable(sb_time)
+                        )
+
+                for sub_line in cat_times_str.split('\n'):
+                    self.final_lst.insert(tt_ins, sub_line)
+                    tt_ins += 1
 
 
     def print_menu(self, duration):
