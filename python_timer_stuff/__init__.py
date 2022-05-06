@@ -101,9 +101,9 @@ class TimedCategories:
             str(self.beginning)
         self.rolling_time = self.beginning
         self.end_time = start_time + workday_hrs
+
         # Takes time categories and creates a
         # dictionary of categories and one of options
-
         sup_iterator = 1
         sub_iterator = 1
         for sup_cat,sub_cats in categories.lists.items():
@@ -181,7 +181,7 @@ class TimedCategories:
 
 
 class TheOutput:
-    '''Class defining the menu or summary outout to be printed'''
+    '''Class defining the menu or summary output to be printed'''
 
 
     def __init__(self, prog_title, cats):
@@ -192,15 +192,34 @@ class TheOutput:
         self.tut_time = sum(self.cats.times['sup'].values())
         tut_time_str = make_human_readable(self.tut_time)
         self.tut_str = 'Total used time: ' + tut_time_str
+        self.tt_str = '========= Time Totals ========='
         self.final_lst = [
             prog_title,
             'Start time: {}'.format(self.cats.beg_str),
             '',
-            '========= Time Totals =========',
+            self.tt_str,
             '',
             self.tut_str,
             ''
         ]
+
+
+    def insert_tot_minus_lunch(self, ins_num):
+        '''This should get called if the "Lunch" category exists and is
+        more than 0. It subtracts total lunch time from total time'''
+        tt_minus_lunch = self.tut_time - self.cats.times['sub']['Lunch']
+        ttml_str = 'Used minus lunch: ' + make_human_readable(tt_minus_lunch)
+        self.final_lst.insert(ins_num, ttml_str)
+
+
+    def insert_eod_plus_lunch(self):
+        '''This should get called if the "Lunch" category exists
+        and is more than 0. It adds lunch to the end-of-day time'''
+        et_w_lunch = (self.cats.end_time +
+            timedelta(seconds=self.cats.times['sub']['Lunch'])
+        )
+        eod_w_lnch = 'Time plus lunch: {}'.format(et_w_lunch.time())
+        self.final_lst.insert(3, eod_w_lnch)
 
 
     def show_menu_info(self, duration):
@@ -213,35 +232,40 @@ class TheOutput:
 
         # Calculates end of day considering lunch isn't included in full day
         # PER CURRENT VERSION, "Lunch" IS A NECESSARY CATEGORY (See README)
-        et_w_lunch = (self.cats.end_time +
-            timedelta(seconds=self.cats.times['sub']['Lunch'])
-        )
+        ##JH et_w_lunch = (self.cats.end_time +
+        ##JH     timedelta(seconds=self.cats.times['sub']['Lunch'])
+        ##JH )
         wrkdy_hrs_mins = str(duration).split(':')
         wrkdy_hrs_mins.pop()  # to remove the unneeded "seconds"
         wrkdy_hrs_mins = [int(i) for i in wrkdy_hrs_mins]  # no zero-padding!
 
+        # End of day
         eod = 'Time after {} hrs {} mins: {}'.format(*wrkdy_hrs_mins,
                                                      self.cats.end_time.time())
-        eod_w_lnch = 'Time plus lunch: {}'.format(et_w_lunch.time())
         unused_time_str = 'Total unused time: ' + uu_time_str
         total_time_str = 'Total Time: ' + all_time_str
         opts_heading = '======== Options ========'
 
+        ## Inserts headings and totals
         self.final_lst.insert(2, eod)
-        self.final_lst.insert(3, eod_w_lnch)
-
         # Determines the line of "Total Used time" for unused and total time
-        unused_ins = self.final_lst.index(self.tut_str)
-        self.final_lst.insert(unused_ins+1, total_time_str)
-        self.final_lst.insert(unused_ins, unused_time_str)
-        self.final_lst.insert((unused_ins+4), opts_heading)
+        used_ins = self.final_lst.index(self.tut_str)
+        self.final_lst.insert(used_ins+1, total_time_str)
+        self.final_lst.insert(used_ins, unused_time_str)
+        self.final_lst.insert((used_ins+4), opts_heading)
+        try:
+            if self.cats.times['sup']['Lunch']:
+                if self.cats.times['sub']['Lunch'] > 0:
+                    self.insert_eod_plus_lunch()
+        except KeyError:
+            self.final_lst.insert(3, "See README about Lunch")
 
         # Inserts the categories as numbered options, as well
         # as other options defined by the TimedCategories class,
         # into the menu print list
         opt_tbl = '{0:<3}{1:.>22}'  # makes justified options box 25 wide
 
-        # Determines line number for insterting options
+        # Determines line number after options heading for insterting options
         o_ins = self.final_lst.index(opts_heading) + 1
 
         # inserts justified table into output list to center the whole table
@@ -256,11 +280,9 @@ class TheOutput:
         Time Totals. Used in menu, as well as in the summary'''
 
         # Determines line number for inserting times to lines under Time Totals
-        tt_ins = [
-            i+1 for i, s in enumerate(self.final_lst) if 'Time Totals' in s
-        ][0]
-        multi_cats = False
+        tt_ins = self.final_lst.index(self.tt_str) + 1
 
+        multi_cats = False
         # Inserts centered table into output list
         for sup_cat, sub_cats in categories.lists.items():
 
@@ -291,6 +313,15 @@ class TheOutput:
                 for sub_line in cat_times_str.split('\n'):
                     self.final_lst.insert(tt_ins, sub_line)
                     tt_ins += 1
+
+        # take lunch duration away from total time
+        used_ins = self.final_lst.index(self.tut_str) + 1
+        try:
+            if self.cats.times['sup']['Lunch']:
+                if self.cats.times['sub']['Lunch'] > 0:
+                    self.insert_tot_minus_lunch(used_ins)
+        except KeyError:
+            self.final_lst.insert(used_ins, "No Lunch today")
 
 
     def print_menu(self, duration):
