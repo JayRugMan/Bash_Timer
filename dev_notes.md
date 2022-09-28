@@ -1,6 +1,6 @@
 ## Checklist:
    [x] modify TimedCategories class with dictionary of dictionaries
-   [x]   ``         ``          ``  funtions to handle new dictionary
+   [x] modify TimedCategories class funtions to handle new dictionary
    [x] create second options menu for each catgory to select a sub-cat
    [x] create add_sub_cat function for TimedCategories class
       [x] add option to options list
