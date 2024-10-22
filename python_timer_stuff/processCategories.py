@@ -3,6 +3,7 @@ from datetime import datetime
 from calendar import day_abbr
 from python_timer_stuff import json_to_dict as categories
 
+
 class TimedCategories:
     '''Class to set up the dictionary of time categories based on
     categories.json in current working directory. this file is required
