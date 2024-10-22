@@ -3,6 +3,7 @@
 This script tracks time for deltas for specified category
 '''
 
+
 from python_timer_stuff import get_starting_input
 from python_timer_stuff import TimedCategories
 from python_timer_stuff import TheOutput
