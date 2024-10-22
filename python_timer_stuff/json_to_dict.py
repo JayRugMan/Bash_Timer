@@ -10,10 +10,10 @@ CAT_FILE = 'categories.json'
 CATEGORIES = {}
 
 try:
-    with open(CATEGORIES, 'r') as json_file:
+    with open(CAT_FILE, 'r') as json_file:
         CATEGORIES = json.load(json_file)
 except FileNotFoundError:
-    sys.exit('{} not found. Please refer to the README'.format(CATEGORIES))
+    sys.exit('{} not found. Please refer to the README'.format(CAT_FILE))
 
 if __name__ == "__main__":
     # This block will only run if the script is executed directly
