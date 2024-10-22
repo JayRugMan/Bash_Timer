@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from calendar import day_abbr
-from json_to_dict import CATEGORIES, CAT_FILE
+from .json_to_dict import CATEGORIES, CAT_FILE
 
 
 class TimedCategories:

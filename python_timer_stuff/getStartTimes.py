@@ -1,6 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
-from processOutput import print_centered_61
+from .processOutput import print_centered_61
 
 
 def get_starting_input(prompt_text_lst, output_type):

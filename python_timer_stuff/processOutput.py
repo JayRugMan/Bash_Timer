@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from datetime import timedelta
-from json_to_dict import CATEGORIES
+from .json_to_dict import CATEGORIES
 
 
 def make_human_readable(time_in_seconds):
