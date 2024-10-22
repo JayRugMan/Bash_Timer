@@ -13,3 +13,8 @@ try:
         lists = json.load(json_file)
 except FileNotFoundError:
     sys.exit('{} not found. Please refer to the README'.format(THE_FILE))
+
+
+##JH if __name__ == "__main__":
+##JH     # This block will only run if the script is executed directly
+##JH     pass
