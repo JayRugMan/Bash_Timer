@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from datetime import timedelta
-from python_timer_stuff import json_to_dict as categories
+from .json_to_dict import load_json_to_dict as categories
 
 
 def make_human_readable(time_in_seconds):
@@ -27,6 +27,7 @@ class TheOutput:
     '''Class defining the menu or summary output to be printed'''
     def __init__(self, prog_title, cats):
         '''starts the basic structure of the program output'''
+        self.categories = categories()
         self.cats = cats
         # Adds up total time
         self.tut_time = sum(self.cats.times['sup'].values())
@@ -107,7 +108,7 @@ class TheOutput:
         tt_ins = self.final_lst.index(self.tt_str) + 1
         multi_cats = False
         # Inserts centered table into output list
-        for sup_cat, sub_cats in categories.lists.items():
+        for sup_cat, sub_cats in self.categories.lists.items():
             sp_time = self.cats.times['sup'][sup_cat]
             if sp_time > 0:
                 # for adding space buffer when more than one super cat

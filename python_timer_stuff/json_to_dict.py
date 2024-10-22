@@ -8,13 +8,14 @@ import json
 
 THE_FILE = 'categories.json'
 
-try:
-    with open(THE_FILE, 'r') as json_file:
-        lists = json.load(json_file)
-except FileNotFoundError:
-    sys.exit('{} not found. Please refer to the README'.format(THE_FILE))
+def load_json_to_dict(file_path=THE_FILE):
+    try:
+        with open(THE_FILE, 'r') as json_file:
+            lists = json.load(json_file)
+    except FileNotFoundError:
+        sys.exit('{} not found. Please refer to the README'.format(THE_FILE))
 
 
-##JH if __name__ == "__main__":
-##JH     # This block will only run if the script is executed directly
-##JH     pass
+if __name__ == "__main__":
+    # This block will only run if the script is executed directly
+    pass
