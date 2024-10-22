@@ -1,6 +1,5 @@
 from datetime import datetime
 from datetime import timedelta
-from calendar import day_abbr
 from processOutput import print_centered_61
 
 
