@@ -21,6 +21,8 @@ def get_starting_input(prompt_text_lst, output_type):
             break
         # Checks whether entry is integers in suggested format
         try:
+            if len(user_input) == 1:
+                user_input = f"{user_input} 0"
             hrs = int(user_input.split(' ')[0])
             mins = int(user_input.split(' ')[1])
         except ValueError:
