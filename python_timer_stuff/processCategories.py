@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from calendar import day_abbr
-from .json_to_dict import load_json_to_dict as categories
+from json_to_dict import CATEGORIES, CAT_FILE
 
 
 class TimedCategories:
@@ -9,7 +9,6 @@ class TimedCategories:
     categories.json in current working directory. this file is required
     to run this program. see README for detials'''
     def __init__(self, start_time, workday_hrs):
-        self.categories = categories()
         self.times = {
             'sup': {},
             'sub': {}
@@ -28,7 +27,7 @@ class TimedCategories:
         # dictionary of categories and one of options
         sup_iterator = 1
         sub_iterator = 1
-        for sup_cat,sub_cats in self.categories.lists.items():
+        for sup_cat,sub_cats in CATEGORIES.items():
             self.times['sup'][sup_cat] = 0
             self.options['sup'][str(sup_iterator)] = sup_cat
             sup_iterator += 1
@@ -49,7 +48,7 @@ class TimedCategories:
         time_2_add = int((right_now - self.rolling_time).total_seconds())
         self.rolling_time = right_now
         self.times['sub'][sbcat] += time_2_add
-        for spcat,sbcats in self.categories.lists.items():
+        for spcat,sbcats in CATEGORIES.items():
             if sbcat in sbcats:
                 self.times['sup'][spcat] += time_2_add
     def add_sub_category(self):
@@ -64,13 +63,13 @@ class TimedCategories:
             selection = input('Under which super catetory: ')
             if selection in self.options['sup'].keys():
                 newsubs_supcat = self.options['sup'][str(selection)]
-                self.categories.lists[newsubs_supcat].append(new_subcat)
+                CATEGORIES[newsubs_supcat].append(new_subcat)
                 break
         # Adds the new category to the json file
-        with open(self.categories.THE_FILE, 'w') as json_file:
+        with open(CAT_FILE, 'w') as json_file:
             json_file.write(
                 json.dumps(
-                    self.categories.lists, sort_keys=True, indent=2
+                    CATEGORIES, sort_keys=True, indent=2
                 ) + '\n'
             )
         # Adds new catetory to times dict with 0 time

@@ -6,15 +6,14 @@ value'''
 import sys
 import json
 
-THE_FILE = 'categories.json'
+CAT_FILE = 'categories.json'
+CATEGORIES = {}
 
-def load_json_to_dict(file_path=THE_FILE):
-    try:
-        with open(THE_FILE, 'r') as json_file:
-            lists = json.load(json_file)
-    except FileNotFoundError:
-        sys.exit('{} not found. Please refer to the README'.format(THE_FILE))
-
+try:
+    with open(CATEGORIES, 'r') as json_file:
+        CATEGORIES = json.load(json_file)
+except FileNotFoundError:
+    sys.exit('{} not found. Please refer to the README'.format(CATEGORIES))
 
 if __name__ == "__main__":
     # This block will only run if the script is executed directly
