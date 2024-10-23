@@ -13,7 +13,7 @@ try:
     with open(CAT_FILE, 'r') as json_file:
         CATEGORIES = json.load(json_file)
 except FileNotFoundError:
-    sys.exit('{} not found. Please refer to the README'.format(CAT_FILE))
+    sys.exit(f'{CAT_FILE} not found. Please refer to the README')
 
 if __name__ == "__main__":
     # This block will only run if the script is executed directly

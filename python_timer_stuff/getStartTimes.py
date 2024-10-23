@@ -38,7 +38,7 @@ def get_starting_input(prompt_text_lst, output_type):
     if output_type == 'time':
         # Sets start date string as "YYYY MM DD"
         start_d_str = datetime.now().date().strftime('%Y %m %d')
-        start_dt_str = '{} {}'.format(start_d_str, user_input)
+        start_dt_str = f'{start_d_str} {user_input}'
         final_output = datetime.strptime(start_dt_str, '%Y %m %d %H %M')
         del start_d_str, start_dt_str
     # If the output type is to be a duration

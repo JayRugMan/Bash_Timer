@@ -20,7 +20,7 @@ def make_human_readable(time_in_seconds):
 def print_centered_61(the_output_lst):
     '''Prints the lines in the list provided centered in 61 characters'''
     for line in the_output_lst:
-        print('{0:^61}'.format(line))
+        print(f'{line:^61}')
 
 
 class TheOutput:
@@ -35,7 +35,7 @@ class TheOutput:
         self.tt_str = '========= Time Totals ========='
         self.final_lst = [
             prog_title,
-            'Start time: {}'.format(self.cats.beg_str),
+            f'Start time: {self.cats.beg_str}',
             '',
             self.tt_str,
             '',
@@ -54,7 +54,7 @@ class TheOutput:
         et_w_lunch = (self.cats.end_time +
             timedelta(seconds=self.cats.times['sub']['Lunch'])
         )
-        eod_w_lnch = 'Time plus lunch: {}'.format(et_w_lunch.time())
+        eod_w_lnch = f"Time plus lunch: {et_w_lunch.time()}"
         self.final_lst.insert(3, eod_w_lnch)
     def show_menu_info(self, duration):
         '''Inserts components appearing only in menu output'''
@@ -97,7 +97,7 @@ class TheOutput:
         o_ins = self.final_lst.index(opts_heading) + 1
         # inserts justified table into output list to center the whole table
         for opt, cat in self.cats.options['sub'].items():
-            self.final_lst.insert(o_ins, opt_tbl.format(opt, ' ' + cat))
+            self.final_lst.insert(o_ins, f"{opt:<3}{' '+cat:.>22}")
             o_ins += 1
         self.final_lst.insert(o_ins, '')
     def show_time_totals(self):
@@ -116,17 +116,11 @@ class TheOutput:
                     tt_ins += 1
                 else:
                     multi_cats = True
-                cat_times_str = '--- {}: {} ---'.format(
-                    sup_cat,
-                    make_human_readable(sp_time)
-                )
+                cat_times_str = f"--- {sup_cat}: {make_human_readable(sp_time)} ---"
                 for sub_cat in sub_cats:
                     sb_time = self.cats.times['sub'][sub_cat]
                     if sb_time > 0:
-                        cat_times_str += '\n{}: {}'.format(
-                            sub_cat,
-                            make_human_readable(sb_time)
-                        )
+                        cat_times_str += f"\n{sub_cat}: {make_human_readable(sb_time)}"
                 for sub_line in cat_times_str.split('\n'):
                     self.final_lst.insert(tt_ins, sub_line)
                     tt_ins += 1
@@ -156,12 +150,12 @@ class TheOutput:
         # Create and/or write to output file
         file_date = self.cats.beginning.strftime('%Y-%m-%d')
         ## JH file_name = 'Time_Log_{}_test.txt'.format(file_date)
-        file_name = 'Time_Log_{}.txt'.format(file_date)
+        file_name = f'Time_Log_{file_date}.txt'
         ## Writes, either new file or append
         with open(file_name, 'a+') as sum_file:
             sum_file.write('_'*61+'\n')
             for line in self.final_lst:
-                sum_file.write('{0:^61}\n'.format(line))
+                sum_file.write(f'{line:^61}\n')
 
 
 if __name__ == "__main__":
