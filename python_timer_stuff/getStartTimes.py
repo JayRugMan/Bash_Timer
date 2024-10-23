@@ -9,7 +9,6 @@ def get_starting_input(prompt_text_lst, output_type):
     '''
     print_centered_61(prompt_text_lst)
     # Loops to get the start time in proper format
-
     while True:
         user_input = input(': ')
         # If left blank, then default value is chosen and loop exits
@@ -21,7 +20,7 @@ def get_starting_input(prompt_text_lst, output_type):
             break
         # Checks whether entry is integers in suggested format
         try:
-            if len(user_input) == 1:
+            if len(user_input.split(' ')) == 1:
                 user_input = f"{user_input} 0"
             hrs = int(user_input.split(' ')[0])
             mins = int(user_input.split(' ')[1])
@@ -35,7 +34,6 @@ def get_starting_input(prompt_text_lst, output_type):
         if 0 <= hrs < 25 and 0 <= mins < 60:
             break
         print('-- Error - enter a valid time as suggested')
-
     # If the output type is to be a time
     if output_type == 'time':
         # Sets start date string as "YYYY MM DD"
@@ -43,14 +41,11 @@ def get_starting_input(prompt_text_lst, output_type):
         start_dt_str = '{} {}'.format(start_d_str, user_input)
         final_output = datetime.strptime(start_dt_str, '%Y %m %d %H %M')
         del start_d_str, start_dt_str
-
     # If the output type is to be a duration
     if output_type == 'duration':
         final_output = timedelta(hours=hrs,
                                minutes=mins)
-
     del prompt_text_lst, user_input, output_type, hrs, mins
-
     return final_output
 
 
