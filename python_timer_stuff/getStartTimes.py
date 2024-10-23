@@ -32,8 +32,18 @@ def get_starting_input(prompt_text_lst, output_type):
             continue
         # Checks whether string is an actual time and exits loop
         if 0 <= hrs < 25 and 0 <= mins < 60:
-            break
-        print('-- Error - enter a valid time as suggested')
+            if output_type == 'time':
+                # Create a datetime object for the entered time
+                entered_time = datetime.now().replace(hour=hrs, minute=mins, second=0, microsecond=0)
+                # Check if the entered time is before the current time
+                if entered_time < datetime.now():
+                    break
+                else:
+                    print('-- Error - entered time is not before the current time')
+            else:
+                break
+        else:
+            print('-- Error - enter a valid time as suggested')
     # If the output type is to be a time
     if output_type == 'time':
         # Sets start date string as "YYYY MM DD"
