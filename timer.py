@@ -37,7 +37,7 @@ def main():
 
     while True:
         menu = TheOutput(title, the_categories)
-        menu.print_menu(the_categories.workday)
+        menu.print_menu()
         while True:
             selection = input(': ')
             if selection in the_categories.options['sub']:
