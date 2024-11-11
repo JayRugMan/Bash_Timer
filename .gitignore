@@ -6,6 +6,8 @@ categories.json
 python_timer_stuff/__pycache__/
 __pycache__/
 *.py[cod]
+.timer_saved_state.pkl
+*.pkl
 
 # Include the following Directory
 !python_timer_stuff/*
