@@ -9,6 +9,7 @@ class TimedCategories:
     categories.json in current working directory. this file is required
     to run this program. see README for detials'''
     def __init__(self, start_time, workday_hrs):
+        self.workday = workday_hrs
         self.times = {
             'sup': {},
             'sub': {}
@@ -22,7 +23,7 @@ class TimedCategories:
             ' ' +\
             str(self.beginning)
         self.rolling_time = self.beginning
-        self.end_time = start_time + workday_hrs
+        self.end_time = start_time + self.workday
         # Takes time categories and creates a
         # dictionary of categories and one of options
         sup_iterator = 1
@@ -38,6 +39,7 @@ class TimedCategories:
         self.options['sub'].update({
             'r':'Refresh',
             'a':'Add a Category',
+            's':'Save State',
             'q':'Summarize and Quit'
         })
     def add_time(self, option):
