@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from calendar import day_abbr
 from .json_to_dict import CATEGORIES, CAT_FILE
+from .processOutput import make_human_readable
 
 
 class TimedCategories:
@@ -42,6 +43,7 @@ class TimedCategories:
             's':'Save State',
             'q':'Summarize and Quit'
         })
+        self.lastAction = 'New timer started'
     def add_time(self, option):
         '''adds time specified by the val argument
         to the category specifed by the cat sbcat arg'''
@@ -53,6 +55,7 @@ class TimedCategories:
         for spcat,sbcats in CATEGORIES.items():
             if sbcat in sbcats:
                 self.times['sup'][spcat] += time_2_add
+                self.lastAction = f'added {make_human_readable(time_2_add)} to {sbcat}'
     def add_sub_category(self):
         '''Opens file to append new category as provided by
         user when prompted, then adds the new category to
@@ -89,6 +92,7 @@ class TimedCategories:
                 str_items_lst.append((opt, cat))
         num_items_lst.append((str(new_opt_num), new_subcat))
         self.options['sub'] = dict(num_items_lst + str_items_lst)
+        self.lastAction = f'added new subcategory "{new_subcat}"'
 
 
 if __name__ == "__main__":

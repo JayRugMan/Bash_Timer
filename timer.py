@@ -49,6 +49,7 @@ def main():
         except ValueError:
             # Refreshes menu with updated info, because "now" has changed
             if selection == 'r':
+                the_categories.lastAction = 'refreshed time'
                 continue
             if selection == 'a':  # Add a category
                 the_categories.add_sub_category()  # will modify specified file

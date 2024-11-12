@@ -2,11 +2,13 @@ import dill
 import os
 from datetime import datetime, timedelta
 
+
 def save_state(the_class):
     '''This saves the dictionary to pick up and use again so timers can persist a reboot'''
     the_file = '.timer_saved_state.pkl'
     with open(the_file, 'wb') as file:
         dill.dump(the_class, file)
+    the_class.lastAction = f'saved state to {the_file}'
 
 
 def load_saved():
@@ -24,6 +26,7 @@ def load_saved():
         with open(the_file, 'rb') as file:
             the_class = dill.load(file)
         os.remove(the_file)  # Deletes the file once loaded
+        the_class.lastAction = 'loaded state from file'
         return the_class
     except FileNotFoundError:
         return None
