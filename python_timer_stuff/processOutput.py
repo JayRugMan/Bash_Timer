@@ -56,7 +56,7 @@ class TheOutput:
         )
         eod_w_lnch = f"Time plus lunch: {et_w_lunch.time()}"
         self.final_lst.insert(3, eod_w_lnch)
-    def show_menu_info(self, duration):
+    def show_menu_info(self):
         '''Inserts components appearing only in menu output'''
         # Gets unused time and puts in human-readable string
         unused_sec = (datetime.now()-self.cats.rolling_time).total_seconds()
@@ -67,7 +67,7 @@ class TheOutput:
         ##JH et_w_lunch = (self.cats.end_time +
         ##JH     timedelta(seconds=self.cats.times['sub']['Lunch'])
         ##JH )
-        wrkdy_hrs_mins = str(duration).split(':')
+        wrkdy_hrs_mins = str(self.cats.workday).split(':')
         wrkdy_hrs_mins.pop()  # to remove the unneeded "seconds"
         wrkdy_hrs_mins = [int(i) for i in wrkdy_hrs_mins]  # no zero-padding!
         # End of day
@@ -132,14 +132,15 @@ class TheOutput:
                     self.insert_tot_minus_lunch(used_ins)
         except KeyError:
             self.final_lst.insert(used_ins, "No Lunch today")
-    def print_menu(self, duration):
+    def print_menu(self):
         '''Prints out a formatted menu'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
         # Insert lines into final output string
-        self.show_menu_info(duration)
+        self.show_menu_info()
         self.show_time_totals()
         # Prints each line centered from output_list
         print_centered_61(self.final_lst)
+        print(f"Last Action: {self.cats.lastAction}")
     def print_write_summary(self):
         '''prints summary and records to a file'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
