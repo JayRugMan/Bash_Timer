@@ -25,7 +25,6 @@ def load_saved():
         # if it's not older than 8 hours, open it and load into the active script
         with open(the_file, 'rb') as file:
             the_class = dill.load(file)
-        os.remove(the_file)  # Deletes the file once loaded
         the_class.lastAction = 'loaded state from file'
         return the_class
     except FileNotFoundError:
