@@ -40,7 +40,7 @@ class TimedCategories:
         self.options['sub'].update({
             'r':'Refresh',
             'a':'Add a Category',
-            's':'Save State',
+            's':'Save State and Quit',
             'q':'Summarize and Quit'
         })
         self.lastAction = 'New timer started'
