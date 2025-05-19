@@ -140,7 +140,7 @@ class TheOutput:
         self.show_time_totals()
         # Prints each line centered from output_list
         print_centered_61(self.final_lst)
-        print(f"Last Action: {self.cats.lastAction}")
+        print(f"Last Action:\n{self.cats.lastAction}")
     def print_write_summary(self):
         '''prints summary and records to a file'''
         os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
