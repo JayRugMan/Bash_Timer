@@ -7,7 +7,7 @@ This script tracks time for deltas for specified category
 from python_timer_stuff import get_starting_input
 from python_timer_stuff import TimedCategories
 from python_timer_stuff import TheOutput
-from python_timer_stuff import save_state, load_saved
+from python_timer_stuff import del_file, save_state, load_saved
 
 
 def main():
@@ -33,7 +33,7 @@ def main():
         ##JH beginning, workday = get_start_time(title)
         # Class object for time clocks
         the_categories = TimedCategories(beginning, workday)
-
+        save_state(the_categories)
 
     while True:
         menu = TheOutput(title, the_categories)
@@ -45,6 +45,7 @@ def main():
         try:
             selection = int(selection)
             the_categories.add_time(str(selection))
+            save_state(the_categories)
             continue
         except ValueError:
             # Refreshes menu with updated info, because "now" has changed
@@ -53,12 +54,13 @@ def main():
                 continue
             if selection == 'a':  # Add a category
                 the_categories.add_sub_category()  # will modify specified file
-            if selection == 's':  # Save timer state
-                save_state(the_categories)
+##JH            if selection == 's':  # Save timer state
+##JH                save_state(the_categories)
             if selection == 'q':  # Summary and quit
                 print(selection)
                 summary = TheOutput(title, the_categories)
                 summary.print_write_summary()
+                del_file()  # Deletes any state file
                 break
 
 
