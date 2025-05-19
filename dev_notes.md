@@ -11,5 +11,5 @@
    - [x] update README with new conf(json) file format to allow sub categories
    - [ ] Functionality to add super categories
    - [ ] Fucntionality to remove sub and/or super categories
-   - [ ] Functionality to pause and resume timer state for reboot's etc...
+   - [x] Functionality to pause and resume timer state for reboot's etc...
 
