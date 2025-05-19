@@ -54,8 +54,9 @@ def main():
                 continue
             if selection == 'a':  # Add a category
                 the_categories.add_sub_category()  # will modify specified file
-##JH            if selection == 's':  # Save timer state
-##JH                save_state(the_categories)
+            if selection == 's':  # Save timer state
+                save_state(the_categories)
+                break
             if selection == 'q':  # Summary and quit
                 print(selection)
                 summary = TheOutput(title, the_categories)
